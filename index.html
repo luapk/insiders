@@ -1065,6 +1065,123 @@ video#result {
   60%{transform:translateX(-4px)}
   80%{transform:translateX(4px)}
 }
+
+/* ─── SETTINGS MODAL ─────────────────────────────────────────────────── */
+#settings-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 88888;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(6px);
+  align-items: center;
+  justify-content: center;
+}
+#settings-modal.open { display: flex; }
+.settings-card {
+  background: linear-gradient(160deg, #ffffff 0%, #f5f5f2 100%);
+  border: 1px solid var(--line-hi);
+  border-radius: 16px;
+  padding: 28px 32px;
+  width: 340px;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.18);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.settings-title {
+  font-family: var(--serif);
+  font-size: 20px;
+  color: var(--text);
+  letter-spacing: 0.01em;
+}
+.settings-sub {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--text-3);
+  letter-spacing: 0.06em;
+  margin-top: -8px;
+}
+.settings-field { display: flex; flex-direction: column; gap: 5px; }
+.settings-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--text-3);
+  text-transform: uppercase;
+}
+.settings-input {
+  width: 100%;
+  background: var(--s1);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text);
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s;
+}
+.settings-input:focus { border-color: rgba(170,255,0,0.5); }
+.settings-actions { display: flex; gap: 8px; margin-top: 4px; }
+.settings-save {
+  flex: 1;
+  height: 40px;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hi) 100%);
+  border: none;
+  border-radius: 8px;
+  color: #000;
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.settings-cancel {
+  height: 40px;
+  padding: 0 16px;
+  background: var(--s2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text-2);
+  font-family: var(--sans);
+  font-size: 11px;
+  cursor: pointer;
+}
+.gear-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--s1);
+  border: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-3);
+  font-size: 14px;
+  transition: color 0.15s, border-color 0.15s;
+}
+.gear-btn:hover { color: var(--accent); border-color: rgba(170,255,0,0.4); }
+.keys-missing-banner {
+  display: none;
+  background: rgba(220,38,38,0.08);
+  border: 1px solid rgba(220,38,38,0.2);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-family: var(--mono);
+  font-size: 9px;
+  color: #dc2626;
+  letter-spacing: 0.05em;
+  text-align: center;
+  cursor: pointer;
+}
 </style>
 </head>
 <body>
@@ -1087,6 +1204,40 @@ video#result {
   </div>
 </div>
 
+<!-- ─── SETTINGS MODAL ───────────────────────────────────────────────────── -->
+<div id="settings-modal">
+  <div class="settings-card">
+    <div class="settings-title">API Keys</div>
+    <div class="settings-sub">Stored locally in your browser — never sent to any server.</div>
+    <div class="settings-field">
+      <div class="settings-label">Anthropic (Claude)</div>
+      <input class="settings-input" id="s-claude" type="password" placeholder="sk-ant-api03-…"/>
+    </div>
+    <div class="settings-field">
+      <div class="settings-label">ElevenLabs</div>
+      <input class="settings-input" id="s-eleven" type="password" placeholder="sk_…"/>
+    </div>
+    <div class="settings-field">
+      <div class="settings-label">ElevenLabs Voice ID</div>
+      <input class="settings-input" id="s-voice" type="text" placeholder="qZkuFcRFTdS6vkYu5ABx"/>
+    </div>
+    <div class="settings-field">
+      <div class="settings-label">Kling Access Key</div>
+      <input class="settings-input" id="s-kling-ak" type="password" placeholder="AK…"/>
+    </div>
+    <div class="settings-field">
+      <div class="settings-label">Kling Secret Key</div>
+      <input class="settings-input" id="s-kling-sk" type="password" placeholder="dK…"/>
+    </div>
+    <div class="settings-actions">
+      <button class="settings-cancel" onclick="closeSettings()">Cancel</button>
+      <button class="settings-save" onclick="saveSettings()">
+        <i class="ph ph-floppy-disk"></i> Save &amp; close
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- ─── HEADER ──────────────────────────────────────────────────────────── -->
 <header>
   <div class="logo-mark">
@@ -1100,8 +1251,12 @@ video#result {
       <div class="status-dot"></div>
       <span>Ready</span>
     </div>
+    <button class="gear-btn" onclick="openSettings()" title="API Keys"><i class="ph ph-gear"></i></button>
   </div>
 </header>
+<div class="keys-missing-banner" id="keys-banner" onclick="openSettings()">
+  <i class="ph ph-warning"></i> API keys not configured — click to set up
+</div>
 
 <div id="app">
 
@@ -1316,13 +1471,14 @@ const PASS = 'insiders';
     document.getElementById('lock-screen').style.display='none';
   }
 })();
+window.addEventListener('DOMContentLoaded', ()=>{ if(sessionStorage.getItem('unlocked')==='1') checkKeysBanner(); });
 function lockSubmit(){
   const pw=document.getElementById('lock-pw').value;
   if(pw===PASS){
     sessionStorage.setItem('unlocked','1');
     const el=document.getElementById('lock-screen');
     el.style.transition='opacity 0.4s';el.style.opacity='0';
-    setTimeout(()=>el.style.display='none',400);
+    setTimeout(()=>{ el.style.display='none'; checkKeysBanner(); },400);
   } else {
     const inp=document.getElementById('lock-pw');
     const err=document.getElementById('lock-err');
@@ -1335,13 +1491,46 @@ function lockSubmit(){
   }
 }
 
-// ─── HARDCODED CONFIG ─────────────────────────────────────────────────────────
-const CLAUDE_KEY  = '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';
-const ELEVEN_KEY  = 'sk_779bf6230a898d4c3828d53f88a1735a8ebc8fac2d28194b';
-const KLING_AK    = 'AKD3H4eKfMHfpkmnadytthECbmNADGT4';
-const KLING_SK    = 'dKrKFDGEKEA9M3BDgeYNM9matELMet8T';
-const VOICE_ID    = 'qZkuFcRFTdS6vkYu5ABx';
-const PROXY       = 'https://kling-proxy.paulknott.workers.dev';
+// ─── CONFIG (from localStorage — set via gear icon in header) ─────────────────
+const PROXY = 'https://kling-proxy.paulknott.workers.dev';
+function cfg(k) { return localStorage.getItem('iams_'+k) || ''; }
+function getCLAUDE_KEY()  { return cfg('claude_key'); }
+function getELEVEN_KEY()  { return cfg('eleven_key'); }
+function getKLING_AK()    { return cfg('kling_ak'); }
+function getKLING_SK()    { return cfg('kling_sk'); }
+function getVOICE_ID()    { return cfg('voice_id'); }
+function keysConfigured() {
+  return cfg('claude_key') && cfg('eleven_key') && cfg('kling_ak') && cfg('kling_sk') && cfg('voice_id');
+}
+
+// ─── SETTINGS UI ──────────────────────────────────────────────────────────────
+function openSettings() {
+  document.getElementById('s-claude').value   = cfg('claude_key');
+  document.getElementById('s-eleven').value   = cfg('eleven_key');
+  document.getElementById('s-voice').value    = cfg('voice_id');
+  document.getElementById('s-kling-ak').value = cfg('kling_ak');
+  document.getElementById('s-kling-sk').value = cfg('kling_sk');
+  document.getElementById('settings-modal').classList.add('open');
+}
+function closeSettings() {
+  document.getElementById('settings-modal').classList.remove('open');
+}
+function saveSettings() {
+  localStorage.setItem('iams_claude_key', document.getElementById('s-claude').value.trim());
+  localStorage.setItem('iams_eleven_key', document.getElementById('s-eleven').value.trim());
+  localStorage.setItem('iams_voice_id',   document.getElementById('s-voice').value.trim());
+  localStorage.setItem('iams_kling_ak',   document.getElementById('s-kling-ak').value.trim());
+  localStorage.setItem('iams_kling_sk',   document.getElementById('s-kling-sk').value.trim());
+  closeSettings();
+  checkKeysBanner();
+}
+function checkKeysBanner() {
+  const banner = document.getElementById('keys-banner');
+  if (banner) banner.style.display = keysConfigured() ? 'none' : 'block';
+}
+document.getElementById('settings-modal').addEventListener('click', function(e){
+  if (e.target === this) closeSettings();
+});
 
 // ─── CHARACTER BIBLE ──────────────────────────────────────────────────────────
 const BIBLE = `IAMS Gut Bacteria character:
@@ -1471,8 +1660,8 @@ async function makeJWT() {
   const enc = new TextEncoder();
   const h   = b64u(enc.encode(JSON.stringify({alg:'HS256',typ:'JWT'})));
   const now = Math.floor(Date.now()/1000);
-  const p   = b64u(enc.encode(JSON.stringify({iss:KLING_AK,exp:now+1800,nbf:now-5})));
-  const key = await crypto.subtle.importKey('raw',enc.encode(KLING_SK),{name:'HMAC',hash:'SHA-256'},false,['sign']);
+  const p   = b64u(enc.encode(JSON.stringify({iss:getKLING_AK(),exp:now+1800,nbf:now-5})));
+  const key = await crypto.subtle.importKey('raw',enc.encode(getKLING_SK()),{name:'HMAC',hash:'SHA-256'},false,['sign']);
   const sig = await crypto.subtle.sign('HMAC',key,enc.encode(`${h}.${p}`));
   return `${h}.${p}.${b64u(sig)}`;
 }
@@ -1484,7 +1673,7 @@ async function buildPrompt(phraseText) {
   const voiceCtx = phraseText ? `Character speaks: "${phraseText}" — mouth must be open, facing camera, expressive throughout for lip-sync.` : '';
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
-    headers: { 'Content-Type':'application/json','x-api-key':CLAUDE_KEY,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true' },
+    headers: { 'Content-Type':'application/json','x-api-key':getCLAUDE_KEY(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true' },
     body: JSON.stringify({
       model: 'claude-sonnet-4-20250514', max_tokens: 200,
       system: `You write Kling AI video prompts. Character:\n${BIBLE}\nReturn ONLY the prompt. No preamble. 60-90 words.`,
@@ -1498,9 +1687,9 @@ async function buildPrompt(phraseText) {
 
 // ─── STEP 2: ElevenLabs TTS ───────────────────────────────────────────────────
 async function generateTTS(text) {
-  const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`, {
+  const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${getVOICE_ID()}`, {
     method: 'POST',
-    headers: { 'Content-Type':'application/json','xi-api-key':ELEVEN_KEY },
+    headers: { 'Content-Type':'application/json','xi-api-key':getELEVEN_KEY() },
     body: JSON.stringify({ text, model_id:'eleven_multilingual_v2', voice_settings:{ stability:0.5, similarity_boost:0.85, style:0.2, use_speaker_boost:true } })
   });
   if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(`ElevenLabs: ${e.detail?.message||res.statusText}`); }
