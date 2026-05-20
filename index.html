@@ -1582,15 +1582,21 @@ async function testKeys() {
     badge('t-claude', r.ok ? 'ok' : 'err', r.ok ? '✓ valid' : `✗ ${r.status}`);
   } catch(e) { badge('t-claude','err','✗ network'); }
 
-  // ElevenLabs
+  // ElevenLabs — use /v1/user (lightweight auth check, no quota cost)
   try {
-    const r = await fetch('https://api.elevenlabs.io/v1/user/subscription', {
+    const r = await fetch('https://api.elevenlabs.io/v1/user', {
       headers:{'xi-api-key': elevenKey}
     });
-    badge('t-eleven', r.ok ? 'ok' : 'err', r.ok ? '✓ valid' : `✗ ${r.status}`);
+    if (r.ok) {
+      badge('t-eleven','ok','✓ valid');
+    } else {
+      const body = await r.json().catch(()=>({}));
+      const msg = body?.detail?.message || body?.detail || r.status;
+      badge('t-eleven','err', r.status===401 ? '✗ invalid key' : `✗ ${r.status}`);
+    }
   } catch(e) { badge('t-eleven','err','✗ network'); }
 
-  // Kling — generate JWT and hit the proxy health route
+  // Kling — use a read-only GET (list tasks) instead of submitting a generation
   try {
     const enc = new TextEncoder();
     const b64u = buf => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
@@ -1600,14 +1606,13 @@ async function testKeys() {
     const key = await crypto.subtle.importKey('raw',enc.encode(klingSk),{name:'HMAC',hash:'SHA-256'},false,['sign']);
     const sig = await crypto.subtle.sign('HMAC',key,enc.encode(`${h}.${p}`));
     const token = `${h}.${p}.${b64u(sig)}`;
-    const r = await fetch(`${PROXY}/v1/videos/text2video`, {
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
-      body: JSON.stringify({model_name:'kling-v2-master',prompt:'test',aspect_ratio:'9:16',duration:'5'})
+    // GET list is read-only — no credits consumed, no rate-limit risk
+    const r = await fetch(`${PROXY}/v1/videos/text2video?pageSize=1`, {
+      headers:{'Authorization':`Bearer ${token}`}
     });
-    // 400/422 = proxy reached, auth ok but bad params — still means creds work
-    badge('t-kling', (r.ok || r.status===400 || r.status===422) ? 'ok' : 'err',
-      (r.ok || r.status===400 || r.status===422) ? '✓ valid' : `✗ ${r.status}`);
+    // 200/401/403 are all definitive. 429 = auth ok, quota hit = creds valid.
+    const ok = r.ok || r.status === 429;
+    badge('t-kling', ok ? 'ok' : 'err', ok ? (r.status===429 ? '✓ valid (quota low)' : '✓ valid') : `✗ ${r.status}`);
   } catch(e) { badge('t-kling','err','✗ network'); }
 
   btn.disabled = false;
