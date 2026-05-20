@@ -1169,6 +1169,19 @@ video#result {
   transition: color 0.15s, border-color 0.15s;
 }
 .gear-btn:hover { color: var(--accent); border-color: rgba(170,255,0,0.4); }
+.test-badge {
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: 0.06em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+.test-badge.ok  { background: rgba(170,255,0,0.15); color: #447700; border: 1px solid rgba(170,255,0,0.35); }
+.test-badge.err { background: rgba(220,38,38,0.10); color: #dc2626; border: 1px solid rgba(220,38,38,0.25); }
+.test-badge.checking { background: var(--s2); color: var(--text-3); border: 1px solid var(--line); }
+
 .keys-missing-banner {
   display: none;
   background: rgba(220,38,38,0.08);
@@ -1210,11 +1223,15 @@ video#result {
     <div class="settings-title">API Keys</div>
     <div class="settings-sub">Stored locally in your browser — never sent to any server.</div>
     <div class="settings-field">
-      <div class="settings-label">Anthropic (Claude)</div>
+      <div class="settings-label" style="display:flex;align-items:center;justify-content:space-between">
+        Anthropic (Claude) <span id="t-claude" class="test-badge"></span>
+      </div>
       <input class="settings-input" id="s-claude" type="password" placeholder="sk-ant-api03-…"/>
     </div>
     <div class="settings-field">
-      <div class="settings-label">ElevenLabs</div>
+      <div class="settings-label" style="display:flex;align-items:center;justify-content:space-between">
+        ElevenLabs <span id="t-eleven" class="test-badge"></span>
+      </div>
       <input class="settings-input" id="s-eleven" type="password" placeholder="sk_…"/>
     </div>
     <div class="settings-field">
@@ -1222,17 +1239,21 @@ video#result {
       <input class="settings-input" id="s-voice" type="text" placeholder="qZkuFcRFTdS6vkYu5ABx"/>
     </div>
     <div class="settings-field">
-      <div class="settings-label">Kling Access Key</div>
-      <input class="settings-input" id="s-kling-ak" type="password" placeholder="AK…"/>
-    </div>
-    <div class="settings-field">
-      <div class="settings-label">Kling Secret Key</div>
-      <input class="settings-input" id="s-kling-sk" type="password" placeholder="dK…"/>
+      <div class="settings-label" style="display:flex;align-items:center;justify-content:space-between">
+        Kling <span id="t-kling" class="test-badge"></span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+        <input class="settings-input" id="s-kling-ak" type="password" placeholder="AK…"/>
+        <input class="settings-input" id="s-kling-sk" type="password" placeholder="SK…"/>
+      </div>
     </div>
     <div class="settings-actions">
       <button class="settings-cancel" onclick="closeSettings()">Cancel</button>
+      <button class="settings-cancel" onclick="testKeys()" id="test-btn" style="display:flex;align-items:center;gap:5px">
+        <i class="ph ph-plugs-connected"></i> Test
+      </button>
       <button class="settings-save" onclick="saveSettings()">
-        <i class="ph ph-floppy-disk"></i> Save &amp; close
+        <i class="ph ph-floppy-disk"></i> Save
       </button>
     </div>
   </div>
@@ -1531,6 +1552,66 @@ function checkKeysBanner() {
 document.getElementById('settings-modal').addEventListener('click', function(e){
   if (e.target === this) closeSettings();
 });
+
+async function testKeys() {
+  const btn = document.getElementById('test-btn');
+  btn.disabled = true;
+
+  function badge(id, state, text) {
+    const el = document.getElementById(id);
+    el.className = 'test-badge ' + state;
+    el.textContent = text;
+  }
+
+  const claudeKey = document.getElementById('s-claude').value.trim();
+  const elevenKey = document.getElementById('s-eleven').value.trim();
+  const klingAk   = document.getElementById('s-kling-ak').value.trim();
+  const klingSk   = document.getElementById('s-kling-sk').value.trim();
+
+  badge('t-claude','checking','testing…');
+  badge('t-eleven','checking','testing…');
+  badge('t-kling', 'checking','testing…');
+
+  // Claude
+  try {
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':claudeKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body: JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:5,messages:[{role:'user',content:'hi'}]})
+    });
+    badge('t-claude', r.ok ? 'ok' : 'err', r.ok ? '✓ valid' : `✗ ${r.status}`);
+  } catch(e) { badge('t-claude','err','✗ network'); }
+
+  // ElevenLabs
+  try {
+    const r = await fetch('https://api.elevenlabs.io/v1/user/subscription', {
+      headers:{'xi-api-key': elevenKey}
+    });
+    badge('t-eleven', r.ok ? 'ok' : 'err', r.ok ? '✓ valid' : `✗ ${r.status}`);
+  } catch(e) { badge('t-eleven','err','✗ network'); }
+
+  // Kling — generate JWT and hit the proxy health route
+  try {
+    const enc = new TextEncoder();
+    const b64u = buf => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+    const h = b64u(enc.encode(JSON.stringify({alg:'HS256',typ:'JWT'})));
+    const now = Math.floor(Date.now()/1000);
+    const p = b64u(enc.encode(JSON.stringify({iss:klingAk,exp:now+1800,nbf:now-5})));
+    const key = await crypto.subtle.importKey('raw',enc.encode(klingSk),{name:'HMAC',hash:'SHA-256'},false,['sign']);
+    const sig = await crypto.subtle.sign('HMAC',key,enc.encode(`${h}.${p}`));
+    const token = `${h}.${p}.${b64u(sig)}`;
+    const r = await fetch(`${PROXY}/v1/videos/text2video`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
+      body: JSON.stringify({model_name:'kling-v2-master',prompt:'test',aspect_ratio:'9:16',duration:'5'})
+    });
+    // 400/422 = proxy reached, auth ok but bad params — still means creds work
+    badge('t-kling', (r.ok || r.status===400 || r.status===422) ? 'ok' : 'err',
+      (r.ok || r.status===400 || r.status===422) ? '✓ valid' : `✗ ${r.status}`);
+  } catch(e) { badge('t-kling','err','✗ network'); }
+
+  btn.disabled = false;
+}
 
 // ─── CHARACTER BIBLE ──────────────────────────────────────────────────────────
 const BIBLE = `IAMS Gut Bacteria character:
