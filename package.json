@@ -1,0 +1,10 @@
+{
+  "name": "insiders-factory",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "ai": "^6.0.0",
+    "@vercel/blob": "^0.27.0"
+  }
+}

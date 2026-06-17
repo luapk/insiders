@@ -767,6 +767,26 @@ header {
 
 .kbd { font-family: var(--mono); font-size: 9px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 4px; padding: 2px 6px; color: rgba(255,255,255,0.35); }
 
+/* ─── BACKGROUND ────────────────────────────────────────────────────── */
+.bg-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin-bottom: 4px; }
+.bg-btn {
+  background: linear-gradient(135deg, rgba(255,255,255,0.85) 0%, rgba(240,240,237,0.65) 100%);
+  border: 1px solid var(--line); border-radius: var(--r-md);
+  padding: 8px 4px 6px; cursor: pointer; text-align: center;
+  transition: all 0.15s; display: flex; flex-direction: column; align-items: center; gap: 4px;
+}
+.bg-btn:hover { border-color: var(--line-hi); transform: translateY(-1px); }
+.bg-btn.active {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hi) 100%);
+  border-color: var(--accent); box-shadow: 0 4px 16px rgba(170,255,0,0.35);
+}
+.bg-swatch {
+  width: 28px; height: 20px; border-radius: 4px; border: 1px solid rgba(0,0,0,0.12);
+  flex-shrink: 0;
+}
+.bg-label { font-size: 8px; font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-3); }
+.bg-btn.active .bg-label { color: #000; }
+
 /* ─── PIPELINE ───────────────────────────────────────────────────────── */
 #loading {
   display: none;
@@ -1240,11 +1260,10 @@ video#result {
     </div>
     <div class="settings-field">
       <div class="settings-label" style="display:flex;align-items:center;justify-content:space-between">
-        Kling <span id="t-kling" class="test-badge"></span>
+        Veo 3 (via Vercel AI Gateway) <span id="t-veo" class="test-badge"></span>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-        <input class="settings-input" id="s-kling-ak" type="password" placeholder="AK…"/>
-        <input class="settings-input" id="s-kling-sk" type="password" placeholder="SK…"/>
+      <div style="font-size:10px;color:var(--text-3);line-height:1.5;font-family:var(--mono);background:rgba(0,0,0,0.15);border-radius:6px;padding:8px 10px;border:1px solid rgba(255,255,255,0.08)">
+        Set <strong style="color:var(--text-2)">AI_GATEWAY_API_KEY</strong> and <strong style="color:var(--text-2)">BLOB_READ_WRITE_TOKEN</strong> in your Vercel project environment variables — these live on the server, not here.
       </div>
     </div>
     <div class="settings-actions">
@@ -1413,6 +1432,32 @@ video#result {
         </div>
       </div>
 
+      <!-- Background -->
+      <div class="sect">
+        <span class="sect-label">Background</span>
+        <div class="sect-line"></div>
+        <div class="info-btn"><i class="ph ph-info"></i><div class="tooltip">Choose the environment the character appears in. Green Screen lets you composite in your editing app.</div></div>
+      </div>
+
+      <div class="bg-grid">
+        <div class="bg-btn active" data-bg="studio" onclick="selectBg(this)">
+          <div class="bg-swatch" style="background:linear-gradient(135deg,#e8e8eb,#d5d5d8)"></div>
+          <div class="bg-label">Studio</div>
+        </div>
+        <div class="bg-btn" data-bg="greenscreen" onclick="selectBg(this)">
+          <div class="bg-swatch" style="background:#00B400"></div>
+          <div class="bg-label">Green<br>Screen</div>
+        </div>
+        <div class="bg-btn" data-bg="micro" onclick="selectBg(this)">
+          <div class="bg-swatch" style="background:linear-gradient(135deg,#8B4513,#C4780A,#6B3311)"></div>
+          <div class="bg-label">Micro<br>World</div>
+        </div>
+        <div class="bg-btn" data-bg="3d" onclick="selectBg(this)">
+          <div class="bg-swatch" style="background:linear-gradient(135deg,#1a3a5a,#0d6b8a,#e84040,#f0a820)"></div>
+          <div class="bg-label">3D<br>World</div>
+        </div>
+      </div>
+
     </div><!-- /scroll -->
   </div>
 
@@ -1510,15 +1555,12 @@ function lockSubmit(){
 }
 
 // ─── CONFIG (from localStorage — set via gear icon in header) ─────────────────
-const PROXY = 'https://kling-proxy.paulknott.workers.dev';
 function cfg(k) { return localStorage.getItem('iams_'+k) || ''; }
 function getCLAUDE_KEY()  { return cfg('claude_key'); }
 function getELEVEN_KEY()  { return cfg('eleven_key'); }
-function getKLING_AK()    { return cfg('kling_ak'); }
-function getKLING_SK()    { return cfg('kling_sk'); }
 function getVOICE_ID()    { return cfg('voice_id'); }
 function keysConfigured() {
-  return cfg('claude_key') && cfg('eleven_key') && cfg('kling_ak') && cfg('kling_sk') && cfg('voice_id');
+  return cfg('claude_key') && cfg('eleven_key') && cfg('voice_id');
 }
 
 // ─── SETTINGS UI ──────────────────────────────────────────────────────────────
@@ -1526,8 +1568,6 @@ function openSettings() {
   document.getElementById('s-claude').value   = cfg('claude_key');
   document.getElementById('s-eleven').value   = cfg('eleven_key');
   document.getElementById('s-voice').value    = cfg('voice_id');
-  document.getElementById('s-kling-ak').value = cfg('kling_ak');
-  document.getElementById('s-kling-sk').value = cfg('kling_sk');
   document.getElementById('settings-modal').classList.add('open');
 }
 function closeSettings() {
@@ -1537,8 +1577,6 @@ function saveSettings() {
   localStorage.setItem('iams_claude_key', document.getElementById('s-claude').value.trim());
   localStorage.setItem('iams_eleven_key', document.getElementById('s-eleven').value.trim());
   localStorage.setItem('iams_voice_id',   document.getElementById('s-voice').value.trim());
-  localStorage.setItem('iams_kling_ak',   document.getElementById('s-kling-ak').value.trim());
-  localStorage.setItem('iams_kling_sk',   document.getElementById('s-kling-sk').value.trim());
   closeSettings();
   checkKeysBanner();
 }
@@ -1562,12 +1600,10 @@ async function testKeys() {
 
   const claudeKey = document.getElementById('s-claude').value.trim();
   const elevenKey = document.getElementById('s-eleven').value.trim();
-  const klingAk   = document.getElementById('s-kling-ak').value.trim();
-  const klingSk   = document.getElementById('s-kling-sk').value.trim();
 
   badge('t-claude','checking','testing…');
   badge('t-eleven','checking','testing…');
-  badge('t-kling', 'checking','testing…');
+  badge('t-veo',   'checking','testing…');
 
   // Claude
   try {
@@ -1610,24 +1646,21 @@ async function testKeys() {
     }
   } catch(e) { badge('t-eleven','err','✗ network'); }
 
-  // Kling — use a read-only GET (list tasks) instead of submitting a generation
+  // Veo — ping the Vercel function with an empty body to check env config
   try {
-    const enc = new TextEncoder();
-    const b64u = buf => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
-    const h = b64u(enc.encode(JSON.stringify({alg:'HS256',typ:'JWT'})));
-    const now = Math.floor(Date.now()/1000);
-    const p = b64u(enc.encode(JSON.stringify({iss:klingAk,exp:now+1800,nbf:now-5})));
-    const key = await crypto.subtle.importKey('raw',enc.encode(klingSk),{name:'HMAC',hash:'SHA-256'},false,['sign']);
-    const sig = await crypto.subtle.sign('HMAC',key,enc.encode(`${h}.${p}`));
-    const token = `${h}.${p}.${b64u(sig)}`;
-    // GET list is read-only — no credits consumed, no rate-limit risk
-    const r = await fetch(`${PROXY}/v1/videos/text2video?pageSize=1`, {
-      headers:{'Authorization':`Bearer ${token}`}
-    });
-    // 200/401/403 are all definitive. 429 = auth ok, quota hit = creds valid.
-    const ok = r.ok || r.status === 429;
-    badge('t-kling', ok ? 'ok' : 'err', ok ? (r.status===429 ? '✓ valid (quota low)' : '✓ valid') : `✗ ${r.status}`);
-  } catch(e) { badge('t-kling','err','✗ network'); }
+    const r = await fetch('/api/generate', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({}) });
+    const d = await r.json().catch(() => ({}));
+    if (r.status === 500 && d.error && d.error.includes('AI_GATEWAY_API_KEY')) {
+      badge('t-veo','err','✗ set AI_GATEWAY_API_KEY in Vercel');
+    } else if (r.status === 400) {
+      // Reached handler and complained about missing prompt → env keys are present
+      badge('t-veo','ok','✓ server ready');
+    } else if (r.status === 500) {
+      badge('t-veo','err',`✗ ${d.error||'server error'}`);
+    } else {
+      badge('t-veo','ok','✓ reachable');
+    }
+  } catch(e) { badge('t-veo','err','✗ /api/generate unreachable (deploy to Vercel)'); }
 
   btn.disabled = false;
 }
@@ -1652,8 +1685,16 @@ const MOOD_BRIEFS = {
 };
 
 // ─── STATE ────────────────────────────────────────────────────────────────────
-let mood = null, format = '9:16', activeCat = 'branded', selectedPhrase = null;
+let mood = null, format = '9:16', background = 'studio', activeCat = 'branded', selectedPhrase = null;
 let busy = false, history = [], lastAudioBlob = null;
+
+// Background canvas fill colours — used when compositing hero ref onto starting frame
+const BG_FILLS = {
+  studio:      '#e9e9ec',
+  greenscreen: '#00B400',
+  micro:       '#6B3311',
+  '3d':        '#1a3a5a',
+};
 
 // ─── CHAR DROPDOWN ────────────────────────────────────────────────────────────
 function toggleCharDropdown() {
@@ -1719,6 +1760,13 @@ function selectMood(el) {
 function selectFormat(el) {
   document.querySelectorAll('.fmt-btn').forEach(b => b.classList.remove('active'));
   el.classList.add('active'); format = el.dataset.ar;
+  REF_CACHE = {}; // bust cache when format changes
+}
+
+function selectBg(el) {
+  document.querySelectorAll('.bg-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active'); background = el.dataset.bg;
+  REF_CACHE = {}; // bust cache when background changes
 }
 
 function getPhrase() {
@@ -1756,16 +1804,6 @@ function tick() {
 }
 
 // ─── JWT ──────────────────────────────────────────────────────────────────────
-function b64u(buf) { return btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
-async function makeJWT() {
-  const enc = new TextEncoder();
-  const h   = b64u(enc.encode(JSON.stringify({alg:'HS256',typ:'JWT'})));
-  const now = Math.floor(Date.now()/1000);
-  const p   = b64u(enc.encode(JSON.stringify({iss:getKLING_AK(),exp:now+1800,nbf:now-5})));
-  const key = await crypto.subtle.importKey('raw',enc.encode(getKLING_SK()),{name:'HMAC',hash:'SHA-256'},false,['sign']);
-  const sig = await crypto.subtle.sign('HMAC',key,enc.encode(`${h}.${p}`));
-  return `${h}.${p}.${b64u(sig)}`;
-}
 
 // ─── STEP 1: CLAUDE prompt ────────────────────────────────────────────────────
 async function buildPrompt(phraseText) {
@@ -1797,24 +1835,13 @@ async function generateTTS(text) {
   return await res.blob();
 }
 
-// ─── STEP 3: Upload audio ─────────────────────────────────────────────────────
-async function uploadAudio(blob) {
-  const form = new FormData();
-  form.append('file', new File([blob], 'voice.mp3', {type:'audio/mpeg'}));
-  const res = await fetch(`${PROXY}/upload-audio`, { method:'POST', body:form });
-  if (!res.ok) throw new Error(`Audio upload failed (${res.status})`);
-  const d = await res.json();
-  if (!d.url) throw new Error('Audio upload: no URL returned');
-  return d.url;
-}
-
-// ─── STEP 4: Kling video ──────────────────────────────────────────────────────
-// Load the hero reference and letterbox it onto a neutral studio canvas matching
-// the chosen aspect ratio, returned as base64 JPEG. image2video starts from this
-// frame, which is what actually locks adherence to the character design.
-const REF_CACHE = {};
-async function getReferenceImage(fmt) {
-  if (REF_CACHE[fmt]) return REF_CACHE[fmt];
+// ─── STEP 3: Veo 3 video ─────────────────────────────────────────────────────
+// Composite the hero reference onto a background-coloured canvas at the chosen
+// aspect ratio. The resulting base64 JPEG is the starting frame for Veo image-to-video.
+let REF_CACHE = {};
+async function getReferenceImage(fmt, bg) {
+  const cacheKey = `${fmt}-${bg}`;
+  if (REF_CACHE[cacheKey]) return REF_CACHE[cacheKey];
   const img = await new Promise((res, rej) => {
     const i = new Image();
     i.onload = () => res(i); i.onerror = () => rej(new Error('reference image failed to load'));
@@ -1825,43 +1852,30 @@ async function getReferenceImage(fmt) {
   const canvas = document.createElement('canvas');
   canvas.width = cw; canvas.height = ch;
   const ctx = canvas.getContext('2d');
-  ctx.fillStyle = '#e9e9ec'; ctx.fillRect(0,0,cw,ch); // soft neutral studio bg
-  const scale = Math.min(cw/img.width, ch/img.height) * 0.94; // contain, keep whole character
+  ctx.fillStyle = BG_FILLS[bg] || '#e9e9ec';
+  ctx.fillRect(0, 0, cw, ch);
+  const scale = Math.min(cw/img.width, ch/img.height) * 0.94;
   const dw = img.width*scale, dh = img.height*scale;
   ctx.drawImage(img, (cw-dw)/2, (ch-dh)/2, dw, dh);
   const b64 = canvas.toDataURL('image/jpeg', 0.9).split(',')[1];
-  REF_CACHE[fmt] = b64;
+  REF_CACHE[cacheKey] = b64;
   return b64;
 }
 
-async function submitKling(prompt) {
-  const token = await makeJWT();
-  const image = await getReferenceImage(format);
-  const res = await fetch(`${PROXY}/v1/videos/image2video`, {
-    method:'POST',
-    headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
-    body: JSON.stringify({ model_name:'kling-v1-6', image, prompt, negative_prompt:'purple, opaque, blob, text, watermark, logo, blurry, clothing, hat, deformed, extra limbs', cfg_scale:0.5, mode:'pro', duration:'5' })
+// ─── STEP 3: Veo 3 image-to-video via Vercel serverless function ──────────────
+// The server handles Veo generation + Vercel Blob storage and returns a durable URL.
+// Veo generation typically takes 1-3 min; the function has maxDuration: 300s.
+async function submitVeo(promptText) {
+  const imageBase64 = await getReferenceImage(format, background);
+  const res = await fetch('/api/generate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt: promptText, imageBase64, format, background }),
   });
-  if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(`Kling video (${res.status}): ${e.message||res.statusText}`); }
-  const d = await res.json();
-  const taskId = d?.data?.task_id;
-  if (!taskId) throw new Error('Kling: no task ID returned');
-  return taskId;
-}
-
-async function pollKling(taskId) {
-  for (let i=0;i<70;i++) {
-    await sleep(3000);
-    const token = await makeJWT();
-    const res = await fetch(`${PROXY}/v1/videos/image2video/${taskId}`, {headers:{'Authorization':`Bearer ${token}`}});
-    if (!res.ok) continue;
-    const d = await res.json();
-    const t = d?.data;
-    if (!t) continue;
-    if (t.task_status==='succeed') { const v=t?.task_result?.videos?.[0]; if (!v?.url) throw new Error('Kling: no URL'); return { url:v.url, id:v.id }; }
-    if (t.task_status==='failed') throw new Error(`Kling failed: ${t.task_status_msg||'unknown'}`);
-  }
-  throw new Error('Kling: timed out');
+  const d = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(`Veo (${res.status}): ${d.error || res.statusText}`);
+  if (!d.url) throw new Error('Veo: no video URL in response');
+  return d.url;
 }
 
 // ─── ORCHESTRATE ──────────────────────────────────────────────────────────────
@@ -1892,14 +1906,11 @@ async function generate() {
     }
 
     stepActive('step-video','queued');
-    setH('Generating video…','Kling is rendering');
-    const videoTaskId = await submitKling(prompt);
-    const video = await pollKling(videoTaskId);
-    videoUrl = video.url;
+    setH('Generating video…','Veo 3 is rendering — this takes 1–3 min');
+    videoUrl = await submitVeo(prompt);
     stepDone('step-video','✓');
 
-    // Voiceover plays in sync with the muted clip in showVideo() — no server-side
-    // lip-sync (Kling's face detector rejects the non-human character).
+    // Voiceover plays in sync with the muted clip in showVideo().
 
     showVideo(videoUrl, phrase, noVoice ? 'No voice' : phrase);
     addHistory(videoUrl, mood?.toUpperCase()||'CUSTOM');
