@@ -1468,14 +1468,11 @@ video#result {
         <span class="meta-chip" id="meta-phrase">No voice</span>
       </div>
       <div class="output-actions">
-        <button class="out-btn ghost" onclick="previewAudio()"><i class="ph ph-play"></i> Voice preview</button>
+        <button class="out-btn ghost" id="voice-btn" onclick="previewAudio()"><i class="ph ph-microphone"></i> Replay voice</button>
         <button class="out-btn ghost" onclick="generate()"><i class="ph ph-arrows-clockwise"></i> Regenerate</button>
         <button class="out-btn primary" id="dl-btn"><i class="ph ph-download-simple"></i> Download</button>
       </div>
-      <div class="audio-preview" id="audio-preview" style="display:none">
-        <span class="audio-label"><i class="ph ph-microphone"></i> Voice</span>
-        <audio id="audio-player" controls></audio>
-      </div>
+      <audio id="audio-player" style="display:none"></audio>
     </div>
 
     <div id="history-strip"></div>
@@ -1636,13 +1633,14 @@ async function testKeys() {
 }
 
 // ─── CHARACTER BIBLE ──────────────────────────────────────────────────────────
-const BIBLE = `IAMS Gut Bacteria character:
-- Asymmetric amoeba blob, ~1.2:1 width:height, soft organic edges
-- 2-4 tapered cytoplasm pseudopod arms from mid-body, can retract
-- Two large white sclera circles with small round pupils — Pixar-quality, primary acting instrument
-- Translucent purple jelly, soft subsurface scattering, single specular highlight upper-left
-- Always bouncy, breathing oscillation even at rest
-- NEVER add clothing, hats, fingers, or unlisted features`;
+const BIBLE = `IAMS "Gut Bacteria" hero character — match the reference image EXACTLY:
+- A small chibi/baby humanoid: an oversized rounded dome-shaped head on a short stubby body with little arms and legs
+- Made of CLEAR translucent iridescent glass/resin — pearlescent with a soft rainbow sheen, subsurface scattering, glossy wet-looking surface and a single soft specular highlight
+- Inside the transparent head and body: a dense tangle of fine GOLDEN-AMBER coral-like filaments / glowing golden tendrils (like delicate gold noodles or brain-coral), most concentrated in the head
+- Two small round eyes set low on the face with subtle teal/dark pupils — expressive but understated, NOT large white cartoon sclera
+- A tiny mouth that moves subtly when talking
+- Gentle bounce and breathing oscillation even at rest; soft neutral studio background and lighting
+- NEVER make it purple, opaque, or a featureless blob; NEVER add clothing, hats, or extra features. It is clear glass with a glowing gold interior.`;
 
 const MOOD_BRIEFS = {
   hype:  'HIGH ENERGY: Rapid full-body bouncing, arms pumping overhead, eyes wide and sparkling, a joyful animated expression with lively natural mouth movement.',
@@ -1811,12 +1809,38 @@ async function uploadAudio(blob) {
 }
 
 // ─── STEP 4: Kling video ──────────────────────────────────────────────────────
+// Load the hero reference and letterbox it onto a neutral studio canvas matching
+// the chosen aspect ratio, returned as base64 JPEG. image2video starts from this
+// frame, which is what actually locks adherence to the character design.
+const REF_CACHE = {};
+async function getReferenceImage(fmt) {
+  if (REF_CACHE[fmt]) return REF_CACHE[fmt];
+  const img = await new Promise((res, rej) => {
+    const i = new Image();
+    i.onload = () => res(i); i.onerror = () => rej(new Error('reference image failed to load'));
+    i.src = 'assets/Bacteria_Hero.png';
+  });
+  const dims = fmt === '9:16' ? [540,960] : fmt === '1:1' ? [720,720] : [960,540];
+  const [cw, ch] = dims;
+  const canvas = document.createElement('canvas');
+  canvas.width = cw; canvas.height = ch;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#e9e9ec'; ctx.fillRect(0,0,cw,ch); // soft neutral studio bg
+  const scale = Math.min(cw/img.width, ch/img.height) * 0.94; // contain, keep whole character
+  const dw = img.width*scale, dh = img.height*scale;
+  ctx.drawImage(img, (cw-dw)/2, (ch-dh)/2, dw, dh);
+  const b64 = canvas.toDataURL('image/jpeg', 0.9).split(',')[1];
+  REF_CACHE[fmt] = b64;
+  return b64;
+}
+
 async function submitKling(prompt) {
   const token = await makeJWT();
-  const res = await fetch(`${PROXY}/v1/videos/text2video`, {
+  const image = await getReferenceImage(format);
+  const res = await fetch(`${PROXY}/v1/videos/image2video`, {
     method:'POST',
     headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
-    body: JSON.stringify({ model_name:'kling-v2-master', prompt, negative_prompt:'text, watermark, logo, blurry, clothing, hat, human hands', cfg_scale:0.5, mode:'pro', aspect_ratio:format, duration:'5' })
+    body: JSON.stringify({ model_name:'kling-v1-6', image, prompt, negative_prompt:'purple, opaque, blob, text, watermark, logo, blurry, clothing, hat, deformed, extra limbs', cfg_scale:0.5, mode:'pro', duration:'5' })
   });
   if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(`Kling video (${res.status}): ${e.message||res.statusText}`); }
   const d = await res.json();
@@ -1829,7 +1853,7 @@ async function pollKling(taskId) {
   for (let i=0;i<70;i++) {
     await sleep(3000);
     const token = await makeJWT();
-    const res = await fetch(`${PROXY}/v1/videos/text2video/${taskId}`, {headers:{'Authorization':`Bearer ${token}`}});
+    const res = await fetch(`${PROXY}/v1/videos/image2video/${taskId}`, {headers:{'Authorization':`Bearer ${token}`}});
     if (!res.ok) continue;
     const d = await res.json();
     const t = d?.data;
@@ -1918,10 +1942,11 @@ function showVideo(url, phrase, phraseLabel) {
   document.getElementById('meta-phrase').textContent = phraseLabel.length>24 ? phraseLabel.slice(0,24)+'…' : phraseLabel;
 
   const audio = document.getElementById('audio-player');
+  const voiceBtn = document.getElementById('voice-btn');
   if (lastAudioBlob && phrase) {
     audio.src = URL.createObjectURL(lastAudioBlob);
     audio.loop = false;
-    document.getElementById('audio-preview').style.display='flex';
+    voiceBtn.style.display = '';
     // Keep the voiceover running in time with the looping muted clip.
     vid.onplay  = () => { audio.play().catch(()=>{}); };
     vid.onpause = () => audio.pause();
@@ -1930,11 +1955,11 @@ function showVideo(url, phrase, phraseLabel) {
         try { audio.currentTime = vid.currentTime; } catch(e){}
       }
     };
-    audio.play().catch(()=>{}); // may be blocked until interaction; preview button is the fallback
+    audio.play().catch(()=>{}); // may be blocked until interaction; Replay voice is the fallback
   } else {
     audio.pause();
     vid.onplay = vid.onpause = vid.ontimeupdate = null;
-    document.getElementById('audio-preview').style.display='none';
+    voiceBtn.style.display = 'none';
   }
 
   document.getElementById('dl-btn').onclick = () => {
@@ -1944,9 +1969,8 @@ function showVideo(url, phrase, phraseLabel) {
 }
 
 function previewAudio() {
-  const el=document.getElementById('audio-preview');
-  el.style.display=el.style.display==='none'?'flex':'none';
-  if (el.style.display==='flex') document.getElementById('audio-player').play();
+  const a = document.getElementById('audio-player');
+  if (a.paused) { a.currentTime = 0; a.play().catch(()=>{}); } else { a.pause(); }
 }
 
 function showError(msg) {
