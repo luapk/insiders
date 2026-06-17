@@ -1855,10 +1855,14 @@ function blobToB64(blob) {
 async function submitLipSync(video, audioBlob) {
   const token = await makeJWT();
   const audioB64 = await blobToB64(audioBlob);
+  // Per Kling docs the video reference lives INSIDE input, and video_id / video_url
+  // are mutually exclusive. Kling's text2video result doesn't always expose an id,
+  // so fall back to the video_url we already have (Kling can fetch its own CDN url).
+  const ref = video.id ? { video_id: video.id } : { video_url: video.url };
   const res = await fetch(`${PROXY}/v1/videos/lip-sync`, {
     method:'POST',
     headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
-    body: JSON.stringify({ video_id:video.id, video_url:video.url, input:{ mode:'audio2video', audio_type:'file', audio_file: audioB64 } })
+    body: JSON.stringify({ input:{ ...ref, mode:'audio2video', audio_type:'file', audio_file: audioB64 } })
   });
   if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(`Lip-sync (${res.status}): ${e.message||res.statusText}`); }
   const d = await res.json();
