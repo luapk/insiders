@@ -1690,6 +1690,17 @@ const CAMERA_PROMPTS = {
   shake:    'Subtle organic handheld camera energy throughout the entire clip — slight micro-jitter, gentle wobble, and natural breathing creating raw social immediacy as if shot by a human operator.',
 };
 
+// How the chosen environment authentically interacts with the TRANSLUCENT glass body.
+// Fed to Claude so the background is woven into the scene (light, refraction, caustics)
+// rather than just sitting behind the character. Green screen is deliberately flat — we
+// suppress refraction and spill so the clip stays clean for compositing.
+const BG_BRIEFS = {
+  studio:      'SETTING: a soft neutral light-grey studio void. The clean diffused studio light wraps the character\'s translucent glass body in gentle highlights, with faint grey reflections sliding across its glossy surface and softly visible through its clear form.',
+  greenscreen: 'SETTING: a perfectly flat chroma-key green screen background, evenly lit, no shadows or gradients. Keep the glass character crisply separated with clean edges and NO green spill, refraction, or colour bleed onto its body — compositing-ready.',
+  micro:       'SETTING: a warm amber and rust microscopic world of glowing gut-microbiome filaments, heavily out-of-focus behind the character. This warm golden light refracts THROUGH the character\'s translucent glass body, tinting its interior a deeper amber-gold, scattering soft caustic glows across its surface and lighting its golden coral-like core from within.',
+  '3d':        'SETTING: a vibrant stylised 3D-rendered microbiome world of luminous cyan, magenta and gold bacteria, softly out-of-focus behind the character. These vivid colours refract and scatter THROUGH the character\'s translucent glass body — cyan and magenta highlights glinting across its surface and bleeding into its clear form while its golden interior still glows warmly.',
+};
+
 // ─── STATE ────────────────────────────────────────────────────────────────────
 let mood = null, format = '9:16', background = 'studio', activeCat = 'branded', selectedPhrase = null, cameraMove = null;
 let busy = false, history = [], lastAudioBlob = null;
@@ -1804,14 +1815,15 @@ function tick() {
 // ─── STEP 1: CLAUDE prompt ────────────────────────────────────────────────────
 async function buildPrompt(phraseText) {
   const moodCtx  = mood ? `ACTION: ${MOOD_BRIEFS[mood]}` : '';
+  const bgCtx    = BG_BRIEFS[background] || BG_BRIEFS.studio;
   const voiceCtx = phraseText ? `The character is talking — give it subtle, natural mouth movement (gentle opening and closing as if speaking softly), facing camera, lively but not exaggerated.` : '';
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: { 'Content-Type':'application/json','x-api-key':getCLAUDE_KEY(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true' },
     body: JSON.stringify({
-      model: 'claude-sonnet-4-6', max_tokens: 200,
-      system: `You write Veo 3 video prompts for social media clips. Character:\n${BIBLE}\nReturn ONLY the prompt. No preamble. 60-90 words.`,
-      messages: [{ role:'user', content:`${moodCtx}\n${voiceCtx}\nFORMAT: ${format}, 8-second clip. Open with camera framing the character. Describe character appearance. Describe full action arc.${phraseText ? ' The mouth faces camera with subtle natural talking movement (soft open/close), not a fixed wide-open shape.' : ''} End: lighting consistent, seamless loop.` }]
+      model: 'claude-sonnet-4-6', max_tokens: 240,
+      system: `You write Veo 3 video prompts for social media clips. Character:\n${BIBLE}\nThe character is made of CLEAR translucent glass, so the environment behind it must be visible through its body and its light must interact with the glass — weave the setting and the character together, do not describe them as separate layers. Return ONLY the prompt. No preamble. 70-100 words.`,
+      messages: [{ role:'user', content:`${moodCtx}\n${bgCtx}\n${voiceCtx}\nFORMAT: ${format}, 8-second clip. Open with camera framing the character within the setting. Describe the translucent character and how the environment's light and colour refract through and reflect off its glass body. Describe the full action arc.${phraseText ? ' The mouth faces camera with subtle natural talking movement (soft open/close), not a fixed wide-open shape.' : ''} End: lighting consistent, seamless loop.` }]
     })
   });
   const d = await res.json();
