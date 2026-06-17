@@ -1,0 +1,9 @@
+name = "kling-proxy"
+main = "src/index.js"
+compatibility_date = "2024-09-23"
+
+# R2 bucket for hosting generated voice clips so Kling can fetch them for
+# lip-sync. Create it once with:  wrangler r2 bucket create insiders-audio
+[[r2_buckets]]
+binding = "AUDIO_BUCKET"
+bucket_name = "insiders-audio"
