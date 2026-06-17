@@ -617,6 +617,27 @@ header {
 .cam-label { font-size: 8px; font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-3); line-height: 1.2; }
 .cam-btn.active .cam-label { color: #0e7490; }
 
+/* ─── CAST (solo / crowd) ────────────────────────────────────────────── */
+.cast-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; margin-bottom: 4px; }
+.cast-btn {
+  background: linear-gradient(135deg, rgba(255,255,255,0.85) 0%, rgba(240,240,237,0.65) 100%);
+  border: 1px solid var(--line); border-radius: var(--r-md);
+  padding: 9px 8px; cursor: pointer;
+  transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 8px;
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 1px 8px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.9);
+  user-select: none;
+}
+.cast-btn:hover { border-color: var(--line-hi); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.07); }
+.cast-btn.active {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hi) 100%);
+  border-color: var(--accent); box-shadow: 0 4px 20px rgba(170,255,0,0.40);
+}
+.cast-icon { font-size: 17px; color: var(--text-3); line-height: 1; }
+.cast-btn.active .cast-icon { color: rgba(0,0,0,0.55); }
+.cast-label { font-size: 10px; font-family: var(--sans); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-3); }
+.cast-btn.active .cast-label { color: #000; }
+
 /* ─── FORMAT ─────────────────────────────────────────────────────────── */
 .format-grid {
   display: grid;
@@ -1349,6 +1370,18 @@ video#result::-webkit-media-controls-start-playback-button { display: none !impo
         </div>
       </div>
 
+      <!-- Cast: solo vs crowd -->
+      <div class="cast-grid">
+        <div class="cast-btn active" data-cast="solo" onclick="selectCast(this)">
+          <span class="cast-icon"><i class="ph ph-user"></i></span>
+          <div class="cast-label">Solo</div>
+        </div>
+        <div class="cast-btn" data-cast="crowd" onclick="selectCast(this)">
+          <span class="cast-icon"><i class="ph ph-users-three"></i></span>
+          <div class="cast-label">Crowd</div>
+        </div>
+      </div>
+
       <!-- Background (directly after character) -->
       <div class="sect">
         <span class="sect-label">Background</span>
@@ -1393,14 +1426,14 @@ video#result::-webkit-media-controls-start-playback-button { display: none !impo
       <div class="sect">
         <span class="sect-label">Camera</span>
         <div class="sect-line"></div>
-        <div class="info-btn"><i class="ph ph-info"></i><div class="tooltip">Optional camera movement applied to the clip. Leave unselected for a static shot.</div></div>
+        <div class="info-btn"><i class="ph ph-info"></i><div class="tooltip">Optional fast, attention-grabbing camera move. Crash Zoom punches in hard; Whip Pan snaps in off a blur; Hero Orbit arcs 180° around; FPV Dive races in through the world. Leave unselected for a clean static shot.</div></div>
       </div>
 
       <div class="cam-grid">
-        <div class="cam-btn" data-cam="pushin"   onclick="selectCamera(this)"><span class="cam-icon"><i class="ph ph-arrows-in-cardinal"></i></span><div class="cam-label">Push<br>In</div></div>
-        <div class="cam-btn" data-cam="pullback" onclick="selectCamera(this)"><span class="cam-icon"><i class="ph ph-arrows-out-cardinal"></i></span><div class="cam-label">Pull<br>Back</div></div>
-        <div class="cam-btn" data-cam="orbit"    onclick="selectCamera(this)"><span class="cam-icon"><i class="ph ph-arrows-clockwise"></i></span><div class="cam-label">Orbit</div></div>
-        <div class="cam-btn" data-cam="shake"    onclick="selectCamera(this)"><span class="cam-icon"><i class="ph ph-wave-sine"></i></span><div class="cam-label">Shake</div></div>
+        <div class="cam-btn" data-cam="crashzoom" onclick="selectCamera(this)"><span class="cam-icon"><i class="ph ph-magnifying-glass-plus"></i></span><div class="cam-label">Crash<br>Zoom</div></div>
+        <div class="cam-btn" data-cam="whippan"   onclick="selectCamera(this)"><span class="cam-icon"><i class="ph ph-arrow-line-right"></i></span><div class="cam-label">Whip<br>Pan</div></div>
+        <div class="cam-btn" data-cam="heroorbit" onclick="selectCamera(this)"><span class="cam-icon"><i class="ph ph-arrows-clockwise"></i></span><div class="cam-label">Hero<br>Orbit</div></div>
+        <div class="cam-btn" data-cam="fpvdive"   onclick="selectCamera(this)"><span class="cam-icon"><i class="ph ph-rocket-launch"></i></span><div class="cam-label">FPV<br>Dive</div></div>
       </div>
 
       <!-- Voice -->
@@ -1673,6 +1706,10 @@ async function testKeys() {
 
 const CHARACTER_CORE = `CHARACTER: Chibi humanoid — oversized smooth rounded dome head (approx 60% of total height), short stubby torso, small round arms and legs, no neck. Material: CLEAR translucent iridescent glass-resin — pearlescent rainbow subsurface scattering, wet glossy surface, a single soft specular highlight on the crown of the dome. Interior: a dense tangle of fine GOLDEN-AMBER coral-like filaments glowing warmly inside the head and trailing into the body — like illuminated brain-coral or delicate gold noodles. Eyes: exactly TWO small round eyes with subtle TEAL-DARK pupils, set LOW on the face, slightly inset — small and understated, NOT large, NO white sclera, NOT Pixar-style round cartoon eyes, NOT anime — alien, quiet, slightly insectoid, matching the reference image exactly. Mouth: small circular opening, closed and barely visible at rest. When the character speaks: the mouth opens and closes continuously to form each word — jaw drops for open vowels, lips press together for B/M/P sounds, mouth is NEVER frozen open or shut mid-speech, always in motion matching the words. The character FLOATS weightlessly in mid-air with a slow gentle breathing bob — feet completely clear of any surface, genuinely suspended in space. NEVER: opaque, purple-tinted, featureless, clothed, wearing hats, large white eyes, standing on ground, frozen mouth.`;
 
+// CROWD directive — appended when "Crowd" cast is selected. Establishes that the scene is
+// filled with EXACT identical replicas of the hero (no variation), one hero front-and-centre.
+const CROWD_DIRECTIVE = `CAST: A CROWD of MANY identical copies of this exact character fills the scene — the same glass figure repeated dozens of times, every copy sharing identical proportions, glass material, golden interior and eyes with ZERO variation between them. One hero copy sits front-and-centre, slightly larger and in sharpest focus; the others fan out beside and behind it at varying depths, progressively softer in focus. They all float in space and move together as one lively coordinated group.`;
+
 // Action descriptions — used as Claude's creative brief. Claude writes the physical
 // movement only; the compiler handles everything structural.
 const MOOD_BRIEFS = {
@@ -1682,39 +1719,28 @@ const MOOD_BRIEFS = {
   excited: 'Body quivers and vibrates with barely-contained energy, eyes shoot wide, both arms fling out with fingers spread, bouncing rapidly on the spot, the golden interior flaring brighter with electric excitement.',
 };
 
-// Camera prompts — written in Veo 3.1′s language: technical, directional, unambiguous.
-// Each describes the EXACT mechanical movement so Veo has no room to misinterpret.
+// Short environment labels for substitution into the [ENVIRONMENT] placeholder below.
+const ENV_LABELS = {
+  studio:      'a clean neutral light-grey studio space',
+  greenscreen: 'a flat green screen',
+  micro:       'the warm glowing microscopic gut world of amber villi and floating fibres',
+  '3d':        'a vibrant 3D-rendered microbiome world of luminous cyan, magenta and gold cells',
+};
+
+// Camera prompts — FAST, dynamic, social-native moves. Each is written to grab attention
+// in the first second. [CHARACTER] and [ENVIRONMENT] are substituted at compile time.
 const CAMERA_PROMPTS = {
-  pushin:
-    `CAMERA MOVEMENT: Slow, steady dolly push-in.
-Opens at a medium full-body shot with the character floating centred in frame.
-Camera glides forward on a smooth linear track for the full 8 seconds, continuously closing distance.
-Ends in an extreme close-up with the face filling the frame.
-The background compresses and softens further as the lens advances.
-Constant unhurried momentum. No pauses. No shake. No cut.`,
+  crashzoom:
+    `CAMERA: Crash zoom — snap punch-in. Start on a wide shot of [CHARACTER] in [ENVIRONMENT]. On the first syllable the camera executes a sudden aggressive crash zoom straight into a tight close-up of the character's face, motion blur streaking the frame for a split second before locking sharp. Subtle handheld micro-shake on the hold. 35mm look, shallow depth of field, snappy comedic timing. Audio: a quick whoosh on the zoom, then clean dialogue.`,
 
-  pullback:
-    `CAMERA MOVEMENT: Dramatic dolly pull-back reveal.
-Opens in extreme close-up — the character face fills the entire frame, cropped tight.
-Camera tracks backward smoothly and continuously for the full 8 seconds.
-Ends with the character floating small and centred in the wide environment.
-The world opens up around the character as the camera retreats.
-Cinematic, uninterrupted. No pauses. No shake. No cut.`,
+  whippan:
+    `CAMERA: Whip pan in. The camera whips fast from left to right with heavy horizontal motion blur, [ENVIRONMENT] smearing into streaks, then snaps to a hard stop framing [CHARACTER] in a centred medium close-up exactly as they begin to speak. The whip lasts under half a second. Energetic, kinetic, social-native. Audio: a sharp whip-crack whoosh resolving cleanly into the character's voice.`,
 
-  orbit:
-    `CAMERA MOVEMENT: Smooth 90-degree arc orbit shot.
-Camera starts at front-right three-quarter angle, character centred in frame.
-Rotates counterclockwise on a perfect circular track at constant radius and height.
-Ends at front-left three-quarter angle.
-The character stays centred and sharp throughout; the background environment rotates past behind it.
-No camera shake, no drift, no speed variation — a clean fluid arc for the full 8 seconds.`,
+  heroorbit:
+    `CAMERA: Hero orbit — arc around. The camera arcs smoothly 180 degrees around [CHARACTER] at close range, [ENVIRONMENT] sliding past behind them while they stay locked in frame speaking to lens throughout. Slow at the start, slight acceleration through the middle, easing to a front-on hero close-up on the final line. Cinematic and glossy, shallow depth of field, soft rim light separating the character from [ENVIRONMENT]. Steady gimbal motion, no shake.`,
 
-  shake:
-    `CAMERA MOVEMENT: Kinetic handheld urgency.
-Constant fast micro-jitter throughout the entire clip — lateral and vertical oscillations of 2-4 pixels, never settling, never smoothing out.
-Not a slow lazy sway — rapid, twitchy, alive, like adrenaline in the operator's hands.
-Sharp nervous energy. Raw social immediacy. The kind of shot that stops a thumb mid-scroll.
-The jitter is present from frame one to the last frame with no easing in or out.`,
+  fpvdive:
+    `CAMERA: FPV dive in. A fast first-person FPV drone shot races forward through [ENVIRONMENT], banking past softly glowing villi and floating fibre particles, building speed, then decelerates hard into a stable close-up of [CHARACTER], who turns to camera as the dive lands and begins to speak. Wide 14mm FPV lens with slight fisheye, fast motion easing out sharply on arrival. Immersive and visceral. Audio: rushing air and a low whoomph on the landing beat.`,
 };
 
 // Background environment blocks — written as direct Veo directives describing what the
@@ -1738,7 +1764,7 @@ GLASS INTERACTION: These vivid colours refract and scatter THROUGH the glass bod
 };
 
 // ─── STATE ────────────────────────────────────────────────────────────────────
-let mood = null, format = '9:16', background = 'studio', activeCat = 'branded', selectedPhrase = null, cameraMove = null;
+let mood = null, format = '9:16', background = 'studio', activeCat = 'branded', selectedPhrase = null, cameraMove = null, cast = 'solo';
 let busy = false, history = [], lastAudioBlob = null;
 
 // ─── CHAR DROPDOWN ────────────────────────────────────────────────────────────
@@ -1819,6 +1845,11 @@ function selectBg(el) {
   el.classList.add('active'); background = el.dataset.bg;
 }
 
+function selectCast(el) {
+  document.querySelectorAll('.cast-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active'); cast = el.dataset.cast;
+}
+
 function getPhrase() {
   if (activeCat === 'custom') return document.getElementById('custom-phrase').value.trim();
   return selectedPhrase || '';
@@ -1848,19 +1879,25 @@ function tick() {
 // a visual that was *generated* to mouth those words, playing in sync with the matching audio.
 async function compileMasterShot(phraseText) {
   const moodBrief = MOOD_BRIEFS[mood] || '';
+  const isCrowd   = cast === 'crowd';
+  const speaker   = isCrowd ? 'The hero character at front-and-centre' : 'The character';
 
-  // Tell Claude whether the character speaks so it can blend action + speech in the brief
+  // Tell Claude whether the character speaks + whether it's solo or a crowd, so the
+  // action brief is written for the right subject (one figure vs a coordinated group).
   const speechCtx = phraseText
-    ? `The character speaks while performing the action. Blend body expression with the act of speaking — they coexist. Keep mouth movement implicit in the description.`
+    ? 'The subject speaks while performing the action. Blend body expression with the act of speaking — they coexist. Keep mouth movement implicit in the description.'
     : 'Silent — no speech.';
+  const castCtx = isCrowd
+    ? 'Subject is a CROWD of many identical characters moving together as one group, with a single hero leading at the front. Describe the collective group movement and shared energy — ripples through the crowd, synchronised and overlapping motion.'
+    : 'Subject is a single character.';
 
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: { 'Content-Type':'application/json','x-api-key':getCLAUDE_KEY(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true' },
     body: JSON.stringify({
       model: 'claude-sonnet-4-6', max_tokens: 100,
-      system: `Write a 25-40 word action sequence for a CGI character clip. Present tense. Start with a strong verb. Body movement, energy and expression ONLY — no setting, no camera, no character description. Physically specific and visceral.`,
-      messages: [{ role:'user', content: `Action preset: ${moodBrief}\n${speechCtx}` }]
+      system: `Write a 25-40 word action sequence for a CGI character clip. Present tense. Start with a strong verb. Body movement, energy and expression ONLY — no setting, no camera, no character material description. Physically specific and visceral.`,
+      messages: [{ role:'user', content: `Action preset: ${moodBrief}\n${castCtx}\n${speechCtx}` }]
     })
   });
   const d = await res.json();
@@ -1869,32 +1906,43 @@ async function compileMasterShot(phraseText) {
 
   // DIALOGUE block — only present when voice is on.
   // Giving Veo the exact words drives mouth-shape generation for those phonemes.
-  // Eyes and expression must not drift (continuity bible).
-  const dialogueBlock = phraseText ? `DIALOGUE: The character speaks these exact words aloud, mouth animating to every syllable with natural phoneme shapes:
+  // In a crowd, ONLY the front hero lip-syncs — the rest react with body movement
+  // (a crowd all mouthing in unison reads as uncanny). Eyes must not drift (continuity bible).
+  const dialogueBlock = phraseText ? `DIALOGUE: ${speaker} speaks these exact words aloud, mouth animating to every syllable with natural phoneme shapes:
 "${phraseText}"
-Lip detail: lips part for vowels, close for B/M/P sounds, jaw drops for open vowels, tongue visible briefly on T/D/L sounds. The mouth is continuously animated throughout the speech — no frozen or static mouth. Eyes remain identical to the reference image; expression consistent with the action above. Do NOT widen eyes or change their shape during speech.` : null;
+Lip detail: lips part for vowels, close for B/M/P sounds, jaw drops for open vowels, tongue visible briefly on T/D/L sounds. The mouth is continuously animated throughout the speech — no frozen or static mouth. Eyes remain identical to the reference image; expression consistent with the action above. Do NOT widen eyes or change their shape during speech.${isCrowd ? ' Only the front-and-centre hero lip-syncs to these words; the surrounding crowd does NOT speak — they react with body movement only (bouncing, nodding, gesturing).' : ''}` : null;
+
+  // A selected camera move defines its own opening framing, so it replaces the default
+  // shot block. With no camera move we fall back to a clean centred shot.
+  const cameraBlock = compileCamera();
 
   // Assemble optimal Veo 3.1 multi-block prompt — each block is a separate directive layer
   const blocks = [
-    getShotOpener(),
+    cameraBlock || getDefaultShot(),
     CHARACTER_CORE,
+    isCrowd ? CROWD_DIRECTIVE : null,
     actionDesc,
     dialogueBlock,
     BG_BRIEFS[background] || BG_BRIEFS.studio,
-    cameraMove ? CAMERA_PROMPTS[cameraMove] : null,
-    `QUALITY: Photorealistic CGI animation. Soft subsurface scattering through glass. Cinematic depth of field. ${format === '9:16' ? 'Vertical 9:16 social format.' : 'Widescreen 16:9.'} 8-second seamless loop.`,
+    `QUALITY: Photorealistic CGI animation. Soft subsurface scattering through glass. Cinematic depth of field. ${format === '9:16' ? 'Vertical 9:16 social format.' : 'Widescreen 16:9.'}${isCrowd ? ' Every character is an EXACT identical replica — same size, proportions, glass material, golden interior and eyes. A dense, lively, coordinated crowd, all in perfect character continuity.' : ''} 8-second seamless loop.`,
   ];
   return blocks.filter(Boolean).join('\n\n');
 }
 
-function getShotOpener() {
-  switch (cameraMove) {
-    case 'pullback': return 'SHOT: Extreme close-up at frame one — character face fills the frame. Camera pulls back to wide over the full 8 seconds.';
-    case 'pushin':   return 'SHOT: Medium full-body shot at frame one. Camera pushes in to extreme close-up by the final frame.';
-    case 'orbit':    return 'SHOT: Medium three-quarter shot, character at front-right angle. Camera arcs counterclockwise to front-left over 8 seconds.';
-    case 'shake':    return 'SHOT: Medium shot, character centred. Handheld camera.';
-    default:         return 'SHOT: Medium shot. Character centred in frame, full body visible, floating in space.';
-  }
+// Substitute the [CHARACTER]/[ENVIRONMENT] placeholders in the selected camera move.
+function compileCamera() {
+  if (!cameraMove || !CAMERA_PROMPTS[cameraMove]) return null;
+  const charLabel = cast === 'crowd' ? 'the hero glass character (front-and-centre of the crowd)' : 'the translucent glass character';
+  const env = ENV_LABELS[background] || ENV_LABELS.studio;
+  return CAMERA_PROMPTS[cameraMove]
+    .split('[CHARACTER]').join(charLabel)
+    .split('[ENVIRONMENT]').join(env);
+}
+
+function getDefaultShot() {
+  return cast === 'crowd'
+    ? 'SHOT: Wide shot. Hero character centred front, a crowd of identical characters fanning out behind, all floating in space.'
+    : 'SHOT: Medium shot. Character centred in frame, full body visible, floating in space.';
 }
 
 // ─── STEP 2: ElevenLabs TTS ───────────────────────────────────────────────────
