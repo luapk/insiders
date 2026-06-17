@@ -1775,7 +1775,7 @@ async function buildPrompt(phraseText) {
     method: 'POST',
     headers: { 'Content-Type':'application/json','x-api-key':getCLAUDE_KEY(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true' },
     body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514', max_tokens: 200,
+      model: 'claude-sonnet-4-6', max_tokens: 200,
       system: `You write Kling AI video prompts. Character:\n${BIBLE}\nReturn ONLY the prompt. No preamble. 60-90 words.`,
       messages: [{ role:'user', content:`${moodCtx}\n${dirCtx ? 'DIRECTION: '+dirCtx : ''}\n${voiceCtx}\nFORMAT: ${format}, 5-second clip. Open with camera framing. Describe character. Describe action arc. Mouth must face camera and stay open/expressive. End: soft neutral studio lighting, seamless loop.` }]
     })
