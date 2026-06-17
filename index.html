@@ -1308,20 +1308,10 @@ video#result::-webkit-media-controls-start-playback-button { display: none !impo
     </div>
     <div class="settings-field">
       <div class="settings-label" style="display:flex;align-items:center;justify-content:space-between">
-        ElevenLabs <span id="t-eleven" class="test-badge"></span>
-      </div>
-      <input class="settings-input" id="s-eleven" type="password" placeholder="sk_…"/>
-    </div>
-    <div class="settings-field">
-      <div class="settings-label">ElevenLabs Voice ID</div>
-      <input class="settings-input" id="s-voice" type="text" placeholder="fBD19tfE58bkETeiwUoC (default)"/>
-    </div>
-    <div class="settings-field">
-      <div class="settings-label" style="display:flex;align-items:center;justify-content:space-between">
-        Veo 3 (direct via Google Gemini) <span id="t-veo" class="test-badge"></span>
+        Veo 3.1 (direct via Google Gemini) <span id="t-veo" class="test-badge"></span>
       </div>
       <div style="font-size:10px;color:var(--text-3);line-height:1.5;font-family:var(--mono);background:rgba(0,0,0,0.15);border-radius:6px;padding:8px 10px;border:1px solid rgba(255,255,255,0.08)">
-        Set <strong style="color:var(--text-2)">GEMINI_API_KEY</strong> and <strong style="color:var(--text-2)">BLOB_READ_WRITE_TOKEN</strong> in your Vercel project environment variables — these live on the server, not here.
+        Set <strong style="color:var(--text-2)">GEMINI_API_KEY</strong> in your Vercel project environment variables — it lives on the server, not here. Voice-over is generated natively by Veo (Scottish accent).
       </div>
     </div>
     <div class="settings-actions">
@@ -1475,7 +1465,7 @@ video#result::-webkit-media-controls-start-playback-button { display: none !impo
       <div class="sect">
         <span class="sect-label">Voice</span>
         <div class="sect-line"></div>
-        <div class="info-btn"><i class="ph ph-info"></i><div class="tooltip">Voice is generated from a cloned vocal reference. Lip-sync drives the character's mouth to match every word, frame-accurate.</div></div>
+        <div class="info-btn"><i class="ph ph-info"></i><div class="tooltip">Voice-over is generated natively by Veo as part of the clip — a high-pitched Scottish accent, perfectly in sync with the mouth. Toggle silent for no dialogue.</div></div>
       </div>
 
       <div class="phrase-panel">
@@ -1588,7 +1578,6 @@ video#result::-webkit-media-controls-start-playback-button { display: none !impo
         <span class="meta-chip" id="meta-phrase">No voice</span>
       </div>
       <div class="output-actions">
-        <button class="out-btn ghost" id="voice-btn" onclick="previewAudio()"><i class="ph ph-microphone"></i> Replay voice</button>
         <div class="mode-toggle" title="Fast = quicker & cheaper. Quality = richer motion & camera dynamics.">
           <button class="mode-opt active" data-model="fast" onclick="selectModel(this)"><i class="ph ph-lightning"></i> Fast</button>
           <button class="mode-opt" data-model="quality" onclick="selectModel(this)"><i class="ph ph-sparkle"></i> Quality</button>
@@ -1597,7 +1586,6 @@ video#result::-webkit-media-controls-start-playback-button { display: none !impo
         <button class="out-btn primary" id="dl-btn"><i class="ph ph-download-simple"></i> Download</button>
       </div>
       <div id="history-strip"></div>
-      <audio id="audio-player" style="display:none"></audio>
     </div>
 
   </div>
@@ -1635,19 +1623,15 @@ function lockSubmit(){
 
 // ─── CONFIG (from localStorage — set via gear icon in header) ─────────────────
 function cfg(k) { return localStorage.getItem('iams_'+k) || ''; }
-const DEFAULT_VOICE_ID = 'fBD19tfE58bkETeiwUoC';
 function getCLAUDE_KEY()  { return cfg('claude_key'); }
-function getELEVEN_KEY()  { return cfg('eleven_key'); }
-function getVOICE_ID()    { return cfg('voice_id') || DEFAULT_VOICE_ID; }
+// ElevenLabs is currently switched off — voice is generated natively by Veo.
 function keysConfigured() {
-  return cfg('claude_key') && cfg('eleven_key');
+  return cfg('claude_key');
 }
 
 // ─── SETTINGS UI ──────────────────────────────────────────────────────────────
 function openSettings() {
   document.getElementById('s-claude').value   = cfg('claude_key');
-  document.getElementById('s-eleven').value   = cfg('eleven_key');
-  document.getElementById('s-voice').value    = cfg('voice_id');
   document.getElementById('settings-modal').classList.add('open');
 }
 function closeSettings() {
@@ -1655,8 +1639,6 @@ function closeSettings() {
 }
 function saveSettings() {
   localStorage.setItem('iams_claude_key', document.getElementById('s-claude').value.trim());
-  localStorage.setItem('iams_eleven_key', document.getElementById('s-eleven').value.trim());
-  localStorage.setItem('iams_voice_id',   document.getElementById('s-voice').value.trim());
   closeSettings();
   checkKeysBanner();
 }
@@ -1679,10 +1661,8 @@ async function testKeys() {
   }
 
   const claudeKey = document.getElementById('s-claude').value.trim();
-  const elevenKey = document.getElementById('s-eleven').value.trim();
 
   badge('t-claude','checking','testing…');
-  badge('t-eleven','checking','testing…');
   badge('t-veo',   'checking','testing…');
 
   // Claude
@@ -1694,37 +1674,6 @@ async function testKeys() {
     });
     badge('t-claude', r.ok ? 'ok' : 'err', r.ok ? '✓ valid' : `✗ ${r.status}`);
   } catch(e) { badge('t-claude','err','✗ network'); }
-
-  // ElevenLabs — POST to the TTS endpoint with an empty body. This checks the
-  // exact permission generation needs, without spending credits: a key WITH
-  // text_to_speech access gets past auth and fails body validation (422); a key
-  // without it is rejected at auth (401 missing_permissions); an unknown key
-  // returns 401 invalid_api_key.
-  try {
-    const voiceId = document.getElementById('s-voice').value.trim() || '21m00Tcm4TlvDq8ikWAM';
-    const r = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
-      method:'POST',
-      headers:{'Content-Type':'application/json','xi-api-key': elevenKey},
-      body: JSON.stringify({})
-    });
-    if (r.status === 422 || r.ok) {
-      // Passed auth + permission check (422 = empty body rejected after auth)
-      badge('t-eleven','ok','✓ valid');
-    } else if (r.status === 404) {
-      // Auth + permission OK, but the voice ID isn't in this account
-      badge('t-eleven','err','✗ voice ID not found');
-    } else if (r.status === 401) {
-      const body = await r.json().catch(()=>({}));
-      const status = body?.detail?.status || '';
-      if (status === 'missing_permissions' || /permission/i.test(JSON.stringify(body))) {
-        badge('t-eleven','err','✗ enable TTS access');
-      } else {
-        badge('t-eleven','err','✗ invalid key');
-      }
-    } else {
-      badge('t-eleven','err',`✗ ${r.status}`);
-    }
-  } catch(e) { badge('t-eleven','err','✗ network'); }
 
   // Veo — ping the Vercel function with an empty body to check env config
   try {
@@ -1812,7 +1761,7 @@ GLASS INTERACTION: These vivid colours refract and scatter THROUGH the glass bod
 
 // ─── STATE ────────────────────────────────────────────────────────────────────
 let mood = null, format = '9:16', background = 'studio', activeCat = 'branded', selectedPhrase = null, cameraMove = null, cast = 'solo', veoModel = 'fast';
-let busy = false, history = [], lastAudioBlob = null;
+let busy = false, history = [];
 
 // ─── CHAR DROPDOWN ────────────────────────────────────────────────────────────
 function toggleCharDropdown() {
@@ -1964,6 +1913,7 @@ async function compileMasterShot(phraseText) {
   if (phraseText) {
     mouthBlock = `DIALOGUE: ${speaker} speaks these exact words aloud, mouth animating to every syllable with natural phoneme shapes:
 "${phraseText}"
+VOICE: A high-pitched, characterful SCOTTISH accent — bright, playful and energetic, clearly Scottish. The spoken audio matches the mouth movement exactly.
 Lip detail: lips part for vowels, close for B/M/P sounds, jaw drops for open vowels, tongue visible briefly on T/D/L sounds. The mouth is continuously animated throughout the speech — no frozen or static mouth. Eyes remain identical to the reference image; expression consistent with the action above. Do NOT widen eyes or change their shape during speech.${isCrowd ? ' In the crowd, the characters speak with natural, loosely-timed mouth movement — not robotically in unison, each slightly offset.' : ''}`;
   } else {
     mouthBlock = `MOUTH: The mouth stays completely CLOSED and still for the entire clip. The character does NOT talk, does NOT open its mouth, and shows NO mouth or lip movement at any point. This is a silent clip — only body movement, no speaking.`;
@@ -2002,18 +1952,7 @@ function getDefaultShot() {
     : 'SHOT: Medium shot. Character centred in frame, full body visible, floating in space.';
 }
 
-// ─── STEP 2: ElevenLabs TTS ───────────────────────────────────────────────────
-async function generateTTS(text) {
-  const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${getVOICE_ID()}`, {
-    method: 'POST',
-    headers: { 'Content-Type':'application/json','xi-api-key':getELEVEN_KEY() },
-    body: JSON.stringify({ text, model_id:'eleven_multilingual_v2', voice_settings:{ stability:0.5, similarity_boost:0.85, style:0.2, use_speaker_boost:true } })
-  });
-  if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(`ElevenLabs: ${e.detail?.message||res.statusText}`); }
-  return await res.blob();
-}
-
-// ─── STEP 3: Character asset reference ────────────────────────────────────────
+// ─── STEP 2: Character asset reference ────────────────────────────────────────
 // Load the hero art as a clean isolated PNG and base64-encode it. This is passed to
 // Veo 3.1 as an ASSET reference image (an ingredient), NOT a first frame — so the model
 // keeps the character's exact look while generating a brand-new animated scene around it.
@@ -2053,6 +1992,9 @@ async function submitVeo(promptText) {
 }
 
 // ─── ORCHESTRATE ──────────────────────────────────────────────────────────────
+// Voice-over is generated natively by Veo as part of the clip (perfect sync). The
+// selected phrase + Scottish voice direction goes into the Veo DIALOGUE block; no
+// separate TTS or client-side audio muxing.
 async function generate() {
   if (busy) return;
   const phrase    = getPhrase();
@@ -2060,31 +2002,21 @@ async function generate() {
   const withVoice = !noVoice && phrase;
 
   busy = true; tick(); show('loading'); resetSteps();
-  // 'step-host' (audio upload) and 'step-sync' (Kling lip-sync) are retired —
-  // the voiceover is played in sync with the muted clip client-side instead.
+  // Only the video step remains — Veo renders picture + voice together.
+  document.getElementById('step-tts').style.display = 'none';
   document.getElementById('step-host').style.display = 'none';
   document.getElementById('step-sync').style.display = 'none';
-  document.getElementById('step-tts').style.display = withVoice ? '' : 'none';
 
-  let audioBlob = null, videoUrl = null;
+  let videoUrl = null;
 
   try {
     setH('Compiling shot…', 'Assembling prompt for Veo 3.1');
     const prompt = await compileMasterShot(withVoice ? phrase : '');
 
-    if (withVoice) {
-      stepActive('step-tts','generating');
-      audioBlob = await generateTTS(phrase);
-      lastAudioBlob = audioBlob;
-      stepDone('step-tts','✓');
-    }
-
     stepActive('step-video','queued');
     setH('Generating video…', veoModel === 'quality' ? 'Veo 3.1 Quality is rendering — this takes 2–4 min' : 'Veo 3.1 Fast is rendering — this takes 1–3 min');
     videoUrl = await submitVeo(prompt);
     stepDone('step-video','✓');
-
-    // Voiceover plays in sync with the muted clip in showVideo().
 
     showVideo(videoUrl, phrase, noVoice ? 'No voice' : phrase);
     addHistory(videoUrl, mood?.toUpperCase()||'CUSTOM');
@@ -2119,117 +2051,28 @@ function showVideo(url, phrase, phraseLabel) {
   const vid = document.getElementById('result');
   if (format==='9:16') { vid.style.height='min(calc(100vh - 210px),500px)'; vid.style.width='auto'; }
   else                 { vid.style.width='min(calc(100% - 48px),700px)'; vid.style.height='auto'; }
-  vid.src=url; vid.play();
+
+  // Play with Veo's native audio (voice baked into the clip — perfect sync).
+  // A clip with dialogue plays with sound; a silent clip stays muted.
+  const hasVoice = phraseLabel !== 'No voice';
+  vid.volume = 1;
+  vid.muted = !hasVoice;
+  vid.src = url;
+  // If the browser blocks unmuted autoplay, fall back to muted so the clip still plays.
+  vid.play().catch(() => { vid.muted = true; vid.play().catch(()=>{}); });
+  // Click the video to toggle sound (recovery if autoplay was muted).
+  vid.style.cursor = hasVoice ? 'pointer' : 'default';
+  vid.onclick = hasVoice ? () => { vid.muted = !vid.muted; } : null;
 
   document.getElementById('meta-mood').textContent   = mood?.toUpperCase()||'CUSTOM';
   document.getElementById('meta-fmt').textContent    = format;
   document.getElementById('meta-phrase').textContent = phraseLabel.length>24 ? phraseLabel.slice(0,24)+'…' : phraseLabel;
 
-  const audio = document.getElementById('audio-player');
-  const voiceBtn = document.getElementById('voice-btn');
-  if (lastAudioBlob && phrase) {
-    audio.src = URL.createObjectURL(lastAudioBlob);
-    audio.loop = false;
-    voiceBtn.style.display = '';
-    // Keep the voiceover running in time with the looping muted clip.
-    vid.onplay  = () => { audio.play().catch(()=>{}); };
-    vid.onpause = () => audio.pause();
-    vid.ontimeupdate = () => {
-      if (Math.abs(audio.currentTime - vid.currentTime) > 0.25) {
-        try { audio.currentTime = vid.currentTime; } catch(e){}
-      }
-    };
-    audio.play().catch(()=>{}); // may be blocked until interaction; Replay voice is the fallback
-  } else {
-    audio.pause();
-    vid.onplay = vid.onpause = vid.ontimeupdate = null;
-    voiceBtn.style.display = 'none';
-  }
-
+  // Download the raw Veo MP4 — audio is already baked in.
   document.getElementById('dl-btn').onclick = () => {
-    if (lastAudioBlob) {
-      downloadMixed(url, lastAudioBlob);
-    } else {
-      const a = document.createElement('a'); a.href = url; a.download = `insiders_${Date.now()}.mp4`;
-      document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    }
+    const a = document.createElement('a'); a.href = url; a.download = `insiders_${Date.now()}.mp4`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
   };
-}
-
-// Render a single-pass canvas capture mixing video + ElevenLabs audio, then download.
-async function downloadMixed(videoUrl, audioBlob) {
-  const dlBtn = document.getElementById('dl-btn');
-  const orig = dlBtn.innerHTML;
-  dlBtn.innerHTML = '<i class="ph ph-spinner"></i> Mixing…';
-  dlBtn.disabled = true;
-  try {
-    // Off-screen video clone so we don't disrupt the player
-    const vid = document.createElement('video');
-    vid.src = videoUrl;
-    vid.muted = true;
-    vid.playsInline = true;
-    document.body.appendChild(vid);
-    await new Promise((res, rej) => { vid.onloadedmetadata = res; vid.onerror = rej; });
-
-    const w = vid.videoWidth  || 720;
-    const h = vid.videoHeight || 1280;
-    const canvas = document.createElement('canvas');
-    canvas.width = w; canvas.height = h;
-    const ctx = canvas.getContext('2d');
-
-    const ac = new AudioContext();
-    const audioBuf = await ac.decodeAudioData(await audioBlob.arrayBuffer());
-    const dest = ac.createMediaStreamDestination();
-
-    const mimeType = ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm']
-      .find(t => MediaRecorder.isTypeSupported(t)) || 'video/webm';
-    const combined = new MediaStream([
-      ...canvas.captureStream(30).getVideoTracks(),
-      ...dest.stream.getAudioTracks(),
-    ]);
-    const recorder = new MediaRecorder(combined, { mimeType, videoBitsPerSecond: 3000000 });
-    const chunks = [];
-    recorder.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
-
-    recorder.start(100);
-
-    const src = ac.createBufferSource();
-    src.buffer = audioBuf;
-    src.connect(dest);
-    src.start();
-
-    await vid.play();
-    let drawing = true;
-    const draw = () => { if (!drawing) return; ctx.drawImage(vid, 0, 0, w, h); requestAnimationFrame(draw); };
-    draw();
-
-    // Run for the full audio duration (voiceover may be shorter than the 8s clip)
-    await new Promise(r => setTimeout(r, audioBuf.duration * 1000 + 400));
-
-    drawing = false;
-    recorder.stop();
-    await new Promise(r => recorder.onstop = r);
-    vid.pause(); document.body.removeChild(vid); await ac.close();
-
-    const blob = new Blob(chunks, { type: 'video/webm' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `insiders_${Date.now()}.webm`;
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    URL.revokeObjectURL(a.href);
-  } catch(e) {
-    console.error('Mixed download failed, falling back to video only:', e);
-    const a = document.createElement('a'); a.href = videoUrl; a.download = `insiders_${Date.now()}.mp4`;
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  } finally {
-    dlBtn.innerHTML = orig;
-    dlBtn.disabled = false;
-  }
-}
-
-function previewAudio() {
-  const a = document.getElementById('audio-player');
-  if (a.paused) { a.currentTime = 0; a.play().catch(()=>{}); } else { a.pause(); }
 }
 
 function showError(msg) {
