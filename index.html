@@ -1258,7 +1258,7 @@ video#result::-webkit-media-controls-start-playback-button { display: none !impo
     </div>
     <div class="settings-field">
       <div class="settings-label">ElevenLabs Voice ID</div>
-      <input class="settings-input" id="s-voice" type="text" placeholder="qZkuFcRFTdS6vkYu5ABx"/>
+      <input class="settings-input" id="s-voice" type="text" placeholder="fBD19tfE58bkETeiwUoC (default)"/>
     </div>
     <div class="settings-field">
       <div class="settings-label" style="display:flex;align-items:center;justify-content:space-between">
@@ -1557,11 +1557,12 @@ function lockSubmit(){
 
 // ─── CONFIG (from localStorage — set via gear icon in header) ─────────────────
 function cfg(k) { return localStorage.getItem('iams_'+k) || ''; }
+const DEFAULT_VOICE_ID = 'fBD19tfE58bkETeiwUoC';
 function getCLAUDE_KEY()  { return cfg('claude_key'); }
 function getELEVEN_KEY()  { return cfg('eleven_key'); }
-function getVOICE_ID()    { return cfg('voice_id'); }
+function getVOICE_ID()    { return cfg('voice_id') || DEFAULT_VOICE_ID; }
 function keysConfigured() {
-  return cfg('claude_key') && cfg('eleven_key') && cfg('voice_id');
+  return cfg('claude_key') && cfg('eleven_key');
 }
 
 // ─── SETTINGS UI ──────────────────────────────────────────────────────────────
@@ -1740,15 +1741,6 @@ GLASS INTERACTION: These vivid colours refract and scatter THROUGH the glass bod
 let mood = null, format = '9:16', background = 'studio', activeCat = 'branded', selectedPhrase = null, cameraMove = null;
 let busy = false, history = [], lastAudioBlob = null;
 
-// Background canvas fill colours — used when compositing hero ref onto starting frame
-// Use brighter values so Veo has a clear environment hint in the reference frame
-const BG_FILLS = {
-  studio:      '#dddde0',
-  greenscreen: '#00B400',
-  micro:       '#bf7820',
-  '3d':        '#1465a0',
-};
-
 // ─── CHAR DROPDOWN ────────────────────────────────────────────────────────────
 function toggleCharDropdown() {
   const wrap = document.getElementById('charWrap');
@@ -1820,13 +1812,11 @@ function selectCamera(el) {
 function selectFormat(el) {
   document.querySelectorAll('.fmt-btn').forEach(b => b.classList.remove('active'));
   el.classList.add('active'); format = el.dataset.ar;
-  REF_CACHE = {}; // bust cache when format changes
 }
 
 function selectBg(el) {
   document.querySelectorAll('.bg-btn').forEach(b => b.classList.remove('active'));
   el.classList.add('active'); background = el.dataset.bg;
-  REF_CACHE = {}; // bust cache when background changes
 }
 
 function getPhrase() {
@@ -1903,42 +1893,35 @@ async function generateTTS(text) {
   return await res.blob();
 }
 
-// ─── STEP 3: Veo 3 video ─────────────────────────────────────────────────────
-// Composite the hero reference onto a background-coloured canvas at the chosen
-// aspect ratio. The resulting base64 JPEG is the starting frame for Veo image-to-video.
-let REF_CACHE = {};
-async function getReferenceImage(fmt, bg) {
-  const cacheKey = `${fmt}-${bg}`;
-  if (REF_CACHE[cacheKey]) return REF_CACHE[cacheKey];
-  const img = await new Promise((res, rej) => {
-    const i = new Image();
-    i.onload = () => res(i); i.onerror = () => rej(new Error('reference image failed to load'));
-    i.src = 'assets/Bacteria_Hero.png';
+// ─── STEP 3: Character asset reference ────────────────────────────────────────
+// Load the hero art as a clean isolated PNG and base64-encode it. This is passed to
+// Veo 3.1 as an ASSET reference image (an ingredient), NOT a first frame — so the model
+// keeps the character's exact look while generating a brand-new animated scene around it.
+let REF_CACHE = null;
+async function getCharacterReference() {
+  if (REF_CACHE) return REF_CACHE;
+  const resp = await fetch('assets/Bacteria_Hero.png');
+  if (!resp.ok) throw new Error('character reference image failed to load');
+  const blob = await resp.blob();
+  const data = await new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result.split(',')[1]);
+    r.onerror = () => rej(new Error('failed to read reference image'));
+    r.readAsDataURL(blob);
   });
-  const dims = fmt === '9:16' ? [540,960] : fmt === '1:1' ? [720,720] : [960,540];
-  const [cw, ch] = dims;
-  const canvas = document.createElement('canvas');
-  canvas.width = cw; canvas.height = ch;
-  const ctx = canvas.getContext('2d');
-  ctx.fillStyle = BG_FILLS[bg] || '#e9e9ec';
-  ctx.fillRect(0, 0, cw, ch);
-  const scale = Math.min(cw/img.width, ch/img.height) * 0.94;
-  const dw = img.width*scale, dh = img.height*scale;
-  ctx.drawImage(img, (cw-dw)/2, (ch-dh)/2, dw, dh);
-  const b64 = canvas.toDataURL('image/jpeg', 0.9).split(',')[1];
-  REF_CACHE[cacheKey] = b64;
-  return b64;
+  REF_CACHE = { data, mimeType: blob.type || 'image/png' };
+  return REF_CACHE;
 }
 
-// ─── STEP 3: Veo 3 text-to-video via Vercel serverless function ───────────────
-// The compiled prompt contains the full character + environment description.
-// The reference image is NOT sent as a first frame — Veo's `image` param is a literal
-// first frame, not a character reference. CHARACTER_CORE in the text prompt drives fidelity.
+// ─── STEP 3: Veo 3.1 video via Vercel serverless function ─────────────────────
+// Sends the compiled multi-block prompt + the character as an asset reference image.
+// Veo generation typically takes 1-3 min; the function has maxDuration: 300s.
 async function submitVeo(promptText) {
+  const ref = await getCharacterReference();
   const res = await fetch('/api/generate', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prompt: promptText, format }),
+    body: JSON.stringify({ prompt: promptText, format, imageBase64: ref.data, imageMimeType: ref.mimeType }),
   });
   if (!res.ok) {
     const d = await res.json().catch(() => ({}));

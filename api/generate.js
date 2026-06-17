@@ -12,13 +12,27 @@ export default async function handler(req, res) {
     });
   }
 
-  // Client sends a fully compiled Veo 3.1 prompt (character + action + environment + camera).
-  // No image parameter — Veo's `image` field is a literal first frame, not a reference;
-  // character fidelity is driven entirely by the detailed text prompt.
-  const { prompt, format } = req.body || {};
+  // Client sends a fully compiled Veo 3.1 prompt plus the character art as an ASSET
+  // reference image. This is NOT a first frame — Veo 3.1's `referenceImages` field with
+  // referenceType 'asset' feeds the character in as an ingredient the model composites
+  // into a freshly generated scene, preserving its look without freezing the opening frame.
+  const { prompt, format, imageBase64, imageMimeType } = req.body || {};
   if (!prompt) return res.status(400).json({ error: 'prompt is required' });
 
   const aspectRatio = format === '9:16' ? '9:16' : '16:9';
+
+  const config = {
+    aspectRatio,
+    durationSeconds: 8,
+    resolution: '720p',
+    numberOfVideos: 1,
+  };
+  if (imageBase64) {
+    config.referenceImages = [{
+      image: { imageBytes: imageBase64, mimeType: imageMimeType || 'image/png' },
+      referenceType: 'asset',
+    }];
+  }
 
   try {
     const ai = new GoogleGenAI({ apiKey });
@@ -26,12 +40,7 @@ export default async function handler(req, res) {
     let operation = await ai.models.generateVideos({
       model: 'veo-3.1-fast-generate-preview',
       prompt,
-      config: {
-        aspectRatio,
-        durationSeconds: 8,
-        resolution: '720p',
-        numberOfVideos: 1,
-      },
+      config,
     });
 
     const started = Date.now();
