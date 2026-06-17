@@ -1417,14 +1417,10 @@ video#result {
         <div class="info-btn"><i class="ph ph-info"></i><div class="tooltip">Aspect ratio for the final rendered clip. 9:16 for Stories and Reels. 1:1 for feed posts. 16:9 for YouTube and display.</div></div>
       </div>
 
-      <div class="format-grid">
+      <div class="format-grid" style="grid-template-columns:repeat(2,1fr)">
         <div class="fmt-btn active" data-ar="9:16" onclick="selectFormat(this)">
           <div class="fmt-ratio"><div class="fmt-rect" style="width:14px;height:25px;border-radius:2px"></div></div>
           <div class="fmt-label">9:16</div>
-        </div>
-        <div class="fmt-btn" data-ar="1:1" onclick="selectFormat(this)">
-          <div class="fmt-ratio"><div class="fmt-rect" style="width:22px;height:22px;border-radius:2px"></div></div>
-          <div class="fmt-label">1:1</div>
         </div>
         <div class="fmt-btn" data-ar="16:9" onclick="selectFormat(this)">
           <div class="fmt-ratio"><div class="fmt-rect" style="width:31px;height:17px;border-radius:2px"></div></div>
