@@ -548,7 +548,7 @@ header {
 /* ─── MOOD GRID ──────────────────────────────────────────────────────── */
 .mood-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 5px;
   margin-bottom: 4px;
 }
@@ -595,28 +595,27 @@ header {
 .mood-tile.active .mood-label { color: #000000; }
 .mood-tile.active .mood-sub { color: rgba(0,0,0,0.45); }
 
-/* ─── DIRECTION ──────────────────────────────────────────────────────── */
-.direction-wrap textarea {
-  width: 100%;
-  background: linear-gradient(135deg, rgba(255,255,255,0.85) 0%, rgba(240,240,237,0.70) 100%);
-  border: 1px solid var(--line);
-  border-radius: var(--r-md);
-  padding: 10px 12px;
-  color: var(--text);
-  font-family: var(--sans);
-  font-size: 11px;
-  line-height: 1.65;
-  resize: none;
-  outline: none;
-  height: 60px;
-  transition: border-color 0.15s;
-  margin-bottom: 4px;
+/* ─── CAMERA ─────────────────────────────────────────────────────────── */
+.cam-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin-bottom: 4px; }
+.cam-btn {
+  background: linear-gradient(135deg, rgba(255,255,255,0.85) 0%, rgba(240,240,237,0.65) 100%);
+  border: 1px solid var(--line); border-radius: var(--r-md);
+  padding: 9px 4px 7px; cursor: pointer; text-align: center;
+  transition: all 0.15s; display: flex; flex-direction: column; align-items: center; gap: 5px;
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 1px 8px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.9);
+  user-select: none;
 }
-
-.direction-wrap textarea:focus { border-color: rgba(170,255,0,0.50); }
-.direction-wrap textarea::placeholder { color: var(--text-3); }
-.direction-wrap textarea:disabled { opacity: 0.30; cursor: pointer; }
-.direction-wrap textarea:disabled:hover { opacity: 0.45; }
+.cam-btn:hover { border-color: var(--line-hi); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.07); }
+.cam-btn.active {
+  background: linear-gradient(135deg, rgba(8,145,178,0.15) 0%, rgba(8,145,178,0.08) 100%);
+  border-color: #0891b2; box-shadow: 0 4px 16px rgba(8,145,178,0.25);
+  transform: translateY(-1px);
+}
+.cam-icon { font-size: 18px; color: var(--text-3); line-height: 1; }
+.cam-btn.active .cam-icon { color: #0891b2; }
+.cam-label { font-size: 8px; font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-3); line-height: 1.2; }
+.cam-btn.active .cam-label { color: #0e7490; }
 
 /* ─── FORMAT ─────────────────────────────────────────────────────────── */
 .format-grid {
@@ -838,7 +837,6 @@ header {
   width: 100%;
   height: 100%;
   padding: 16px;
-  padding-bottom: 64px; /* clear the absolutely-positioned history strip */
   position: relative;
   z-index: 1;
 }
@@ -917,13 +915,10 @@ video#result::-webkit-media-controls-start-playback-button { display: none !impo
 
 /* ─── HISTORY STRIP ──────────────────────────────────────────────────── */
 #history-strip {
-  position: absolute;
-  bottom: 14px;
-  left: 50%;
-  transform: translateX(-50%);
   display: flex;
   gap: 6px;
-  z-index: 10;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .hist-item {
@@ -1354,29 +1349,58 @@ video#result::-webkit-media-controls-start-playback-button { display: none !impo
         </div>
       </div>
 
-      <!-- Direction -->
+      <!-- Background (directly after character) -->
       <div class="sect">
-        <span class="sect-label">Direction</span>
+        <span class="sect-label">Background</span>
         <div class="sect-line"></div>
-        <div class="info-btn"><i class="ph ph-info"></i><div class="tooltip">Choose a mood preset, or write your own direction below. They're mutually exclusive — pick one.</div></div>
+        <div class="info-btn"><i class="ph ph-info"></i><div class="tooltip">Choose the environment the character appears in. The background renders in soft focus behind the character. Green Screen lets you composite in your editing app.</div></div>
+      </div>
+
+      <div class="bg-grid">
+        <div class="bg-btn active" data-bg="studio" onclick="selectBg(this)">
+          <div class="bg-swatch" style="background:linear-gradient(135deg,#e8e8eb,#d5d5d8)"></div>
+          <div class="bg-label">Studio</div>
+        </div>
+        <div class="bg-btn" data-bg="greenscreen" onclick="selectBg(this)">
+          <div class="bg-swatch" style="background:#00B400"></div>
+          <div class="bg-label">Green<br>Screen</div>
+        </div>
+        <div class="bg-btn" data-bg="micro" onclick="selectBg(this)">
+          <div class="bg-swatch" style="background:linear-gradient(135deg,#d4820a,#a05010,#c47820)"></div>
+          <div class="bg-label">Micro<br>World</div>
+        </div>
+        <div class="bg-btn" data-bg="3d" onclick="selectBg(this)">
+          <div class="bg-swatch" style="background:linear-gradient(135deg,#1a6ea8,#0d4b80,#e84040 80%)"></div>
+          <div class="bg-label">3D<br>World</div>
+        </div>
+      </div>
+
+      <!-- Action -->
+      <div class="sect">
+        <span class="sect-label">Action</span>
+        <div class="sect-line"></div>
+        <div class="info-btn"><i class="ph ph-info"></i><div class="tooltip">Choose an action for the character to perform in the clip.</div></div>
       </div>
 
       <div class="mood-grid">
-        <div class="mood-tile" data-mood="hype"  style="--mc:var(--hype)"  onclick="selectMood(this)"><span class="mood-emoji"><i class="ph ph-lightning"></i></span><div class="mood-label">HYPE</div><div class="mood-sub">Big energy</div></div>
-        <div class="mood-tile" data-mood="win"   style="--mc:var(--win)"   onclick="selectMood(this)"><span class="mood-emoji"><i class="ph ph-trophy"></i></span><div class="mood-label">WIN</div><div class="mood-sub">Flex &amp; glow</div></div>
-        <div class="mood-tile" data-mood="wave"  style="--mc:var(--wave)"  onclick="selectMood(this)"><span class="mood-emoji"><i class="ph ph-hand-waving"></i></span><div class="mood-label">WAVE</div><div class="mood-sub">Warm hello</div></div>
-        <div class="mood-tile" data-mood="shock" style="--mc:var(--shock)" onclick="selectMood(this)"><span class="mood-emoji"><i class="ph ph-smiley-nervous"></i></span><div class="mood-label">SHOCK</div><div class="mood-sub">Big reaction</div></div>
-        <div class="mood-tile" data-mood="dance" style="--mc:var(--dance)" onclick="selectMood(this)"><span class="mood-emoji"><i class="ph ph-music-notes-simple"></i></span><div class="mood-label">DANCE</div><div class="mood-sub">Full wiggle</div></div>
-        <div class="mood-tile" data-mood="love"  style="--mc:var(--love)"  onclick="selectMood(this)"><span class="mood-emoji"><i class="ph ph-heart"></i></span><div class="mood-label">LOVE</div><div class="mood-sub">Heart warmth</div></div>
+        <div class="mood-tile" data-mood="party"   style="--mc:#ff5c35" onclick="selectMood(this)"><span class="mood-emoji"><i class="ph ph-confetti"></i></span><div class="mood-label">PARTY</div></div>
+        <div class="mood-tile" data-mood="sick"    style="--mc:#71d95a" onclick="selectMood(this)"><span class="mood-emoji"><i class="ph ph-thermometer"></i></span><div class="mood-label">SICK</div></div>
+        <div class="mood-tile" data-mood="sleepy"  style="--mc:#9333ea" onclick="selectMood(this)"><span class="mood-emoji"><i class="ph ph-moon"></i></span><div class="mood-label">SLEEPY</div></div>
+        <div class="mood-tile" data-mood="excited" style="--mc:#e6a800" onclick="selectMood(this)"><span class="mood-emoji"><i class="ph ph-lightning"></i></span><div class="mood-label">EXCITED</div></div>
       </div>
 
-      <div class="sect" style="margin-top:10px">
-        <span class="sect-label">Custom</span>
+      <!-- Camera -->
+      <div class="sect">
+        <span class="sect-label">Camera</span>
         <div class="sect-line"></div>
+        <div class="info-btn"><i class="ph ph-info"></i><div class="tooltip">Optional camera movement applied to the clip. Leave unselected for a static shot.</div></div>
       </div>
 
-      <div class="direction-wrap">
-        <textarea id="direction" placeholder="Or describe your own direction — scene, action, camera move…"></textarea>
+      <div class="cam-grid">
+        <div class="cam-btn" data-cam="pushin"   onclick="selectCamera(this)"><span class="cam-icon"><i class="ph ph-arrows-in-cardinal"></i></span><div class="cam-label">Push<br>In</div></div>
+        <div class="cam-btn" data-cam="pullback" onclick="selectCamera(this)"><span class="cam-icon"><i class="ph ph-arrows-out-cardinal"></i></span><div class="cam-label">Pull<br>Back</div></div>
+        <div class="cam-btn" data-cam="orbit"    onclick="selectCamera(this)"><span class="cam-icon"><i class="ph ph-arrows-clockwise"></i></span><div class="cam-label">Orbit</div></div>
+        <div class="cam-btn" data-cam="shake"    onclick="selectCamera(this)"><span class="cam-icon"><i class="ph ph-wave-sine"></i></span><div class="cam-label">Shake</div></div>
       </div>
 
       <!-- Voice -->
@@ -1432,32 +1456,6 @@ video#result::-webkit-media-controls-start-playback-button { display: none !impo
         <div class="fmt-btn" data-ar="16:9" onclick="selectFormat(this)">
           <div class="fmt-ratio"><div class="fmt-rect" style="width:31px;height:17px;border-radius:2px"></div></div>
           <div class="fmt-label">16:9</div>
-        </div>
-      </div>
-
-      <!-- Background -->
-      <div class="sect">
-        <span class="sect-label">Background</span>
-        <div class="sect-line"></div>
-        <div class="info-btn"><i class="ph ph-info"></i><div class="tooltip">Choose the environment the character appears in. Green Screen lets you composite in your editing app.</div></div>
-      </div>
-
-      <div class="bg-grid">
-        <div class="bg-btn active" data-bg="studio" onclick="selectBg(this)">
-          <div class="bg-swatch" style="background:linear-gradient(135deg,#e8e8eb,#d5d5d8)"></div>
-          <div class="bg-label">Studio</div>
-        </div>
-        <div class="bg-btn" data-bg="greenscreen" onclick="selectBg(this)">
-          <div class="bg-swatch" style="background:#00B400"></div>
-          <div class="bg-label">Green<br>Screen</div>
-        </div>
-        <div class="bg-btn" data-bg="micro" onclick="selectBg(this)">
-          <div class="bg-swatch" style="background:linear-gradient(135deg,#8B4513,#C4780A,#6B3311)"></div>
-          <div class="bg-label">Micro<br>World</div>
-        </div>
-        <div class="bg-btn" data-bg="3d" onclick="selectBg(this)">
-          <div class="bg-swatch" style="background:linear-gradient(135deg,#1a3a5a,#0d6b8a,#e84040,#f0a820)"></div>
-          <div class="bg-label">3D<br>World</div>
         </div>
       </div>
 
@@ -1520,10 +1518,10 @@ video#result::-webkit-media-controls-start-playback-button { display: none !impo
         <button class="out-btn ghost" onclick="generate()"><i class="ph ph-arrows-clockwise"></i> Regenerate</button>
         <button class="out-btn primary" id="dl-btn"><i class="ph ph-download-simple"></i> Download</button>
       </div>
+      <div id="history-strip"></div>
       <audio id="audio-player" style="display:none"></audio>
     </div>
 
-    <div id="history-strip"></div>
   </div>
 
 </div>
@@ -1679,24 +1677,30 @@ const BIBLE = `IAMS "Gut Bacteria" hero character — match the reference image 
 - NEVER make it purple, opaque, or a featureless blob; NEVER add clothing, hats, or extra features. It is clear glass with a glowing gold interior.`;
 
 const MOOD_BRIEFS = {
-  hype:  'HIGH ENERGY: Rapid full-body bouncing, arms pumping overhead, eyes wide and sparkling, a joyful animated expression with lively natural mouth movement.',
-  win:   'CELEBRATION: Body inflates proudly, one arm curls into a flex, eyes crinkle into a smile, mouth in a triumphant grin with gentle talking movement.',
-  wave:  'WARM GREETING: Arm waves gently, body tilts toward camera, eyes soft, mouth in a friendly expression with subtle natural talking movement.',
-  shock: 'SURPRISE: Eyes shoot to maximum size, body squashes then springs, arms fly wide, mouth animated in an expressive surprised shape.',
-  dance: 'RHYTHMIC JOY: Body sways and wiggles, arms drift freely, eyes blink happily, mouth in a wide joyful smile with lively movement.',
-  love:  'WARMTH: Body pulses gently, arms wrap inward, eyes squint warmly, mouth in a soft loving expression with gentle movement.'
+  party:   'PARTY: Full-body celebration — arms thrust upward, whole body bouncing with rhythmic joy, eyes wide with pure delight, mouth open in an ecstatic cheer, radiating explosive festive energy throughout the clip.',
+  sick:    'SICK: Lethargic and unwell — body sags and droops, head tilts slowly to one side, eyes half-lidded and glassy, subtle woozy sway, occasional limp shudder as if fighting off an ailment.',
+  sleepy:  'SLEEPY: Heavy drowsiness — eyelids drooping slowly, body gently swaying as if about to topple, a slow deep breath, a tiny yawn with mouth briefly opening, then settling back into a quiet drowsy rest.',
+  excited: 'EXCITED: Barely-contained electrified joy — body quivering and vibrating with anticipation, eyes shooting wide, arms flung out with fingers splayed, bouncing rapidly on the spot, mouth in an enormous enthusiastic grin.',
+};
+
+const CAMERA_PROMPTS = {
+  pushin:   'Camera slowly and smoothly pushes in from a medium shot to a tight close-up on the character over the full clip duration, with gentle depth-of-field shift as it advances.',
+  pullback: 'Camera opens in extreme close-up on the character face and dramatically pulls back over the full clip to reveal the full body and surrounding environment — a cinematic reveal.',
+  orbit:    'Camera smoothly arcs 90 degrees around the character from left-of-centre to right-of-centre, maintaining a constant framing distance throughout the movement.',
+  shake:    'Subtle organic handheld camera energy throughout the entire clip — slight micro-jitter, gentle wobble, and natural breathing creating raw social immediacy as if shot by a human operator.',
 };
 
 // ─── STATE ────────────────────────────────────────────────────────────────────
-let mood = null, format = '9:16', background = 'studio', activeCat = 'branded', selectedPhrase = null;
+let mood = null, format = '9:16', background = 'studio', activeCat = 'branded', selectedPhrase = null, cameraMove = null;
 let busy = false, history = [], lastAudioBlob = null;
 
 // Background canvas fill colours — used when compositing hero ref onto starting frame
+// Use brighter values so Veo has a clear environment hint in the reference frame
 const BG_FILLS = {
-  studio:      '#e9e9ec',
+  studio:      '#dddde0',
   greenscreen: '#00B400',
-  micro:       '#6B3311',
-  '3d':        '#1a3a5a',
+  micro:       '#bf7820',
+  '3d':        '#1465a0',
 };
 
 // ─── CHAR DROPDOWN ────────────────────────────────────────────────────────────
@@ -1745,19 +1749,26 @@ function selectPhrase(el) {
 }
 
 function selectMood(el) {
-  const dir = document.getElementById('direction');
   if (el.classList.contains('active')) {
     el.classList.remove('active');
     mood = null;
-    dir.disabled = false;
   } else {
     document.querySelectorAll('.mood-tile').forEach(t => t.classList.remove('active'));
     el.classList.add('active');
     mood = el.dataset.mood;
-    dir.value = '';
-    dir.disabled = true;
   }
   tick();
+}
+
+function selectCamera(el) {
+  if (el.classList.contains('active')) {
+    el.classList.remove('active');
+    cameraMove = null;
+  } else {
+    document.querySelectorAll('.cam-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    cameraMove = el.dataset.cam;
+  }
 }
 
 function selectFormat(el) {
@@ -1777,31 +1788,13 @@ function getPhrase() {
   return selectedPhrase || '';
 }
 
-document.getElementById('direction').addEventListener('input', function() {
-  if (this.value.trim()) {
-    document.querySelectorAll('.mood-tile').forEach(t => t.classList.remove('active'));
-    mood = null;
-  }
-  tick();
-});
-
-document.getElementById('direction').addEventListener('click', function() {
-  if (this.disabled) {
-    this.disabled = false;
-    document.querySelectorAll('.mood-tile').forEach(t => t.classList.remove('active'));
-    mood = null;
-    this.focus();
-    tick();
-  }
-});
 document.getElementById('custom-phrase').addEventListener('input', () => { selectedPhrase = null; tick(); });
 
 // ─── TICK ─────────────────────────────────────────────────────────────────────
 function tick() {
   const noVoice   = document.getElementById('no-voice-toggle').checked;
   const hasPhrase = noVoice || getPhrase();
-  const hasInput  = mood || document.getElementById('direction').value.trim();
-  const ready     = hasInput && hasPhrase && !busy;
+  const ready     = mood && hasPhrase && !busy;
   document.getElementById('go-btn').disabled = !ready;
   document.getElementById('go-label').textContent = noVoice ? 'Generate clip' : 'Generate clip + voice';
 }
@@ -1810,16 +1803,15 @@ function tick() {
 
 // ─── STEP 1: CLAUDE prompt ────────────────────────────────────────────────────
 async function buildPrompt(phraseText) {
-  const moodCtx  = mood ? `MOOD: ${MOOD_BRIEFS[mood]}` : '';
-  const dirCtx   = document.getElementById('direction').value.trim();
+  const moodCtx  = mood ? `ACTION: ${MOOD_BRIEFS[mood]}` : '';
   const voiceCtx = phraseText ? `The character is talking — give it subtle, natural mouth movement (gentle opening and closing as if speaking softly), facing camera, lively but not exaggerated.` : '';
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: { 'Content-Type':'application/json','x-api-key':getCLAUDE_KEY(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true' },
     body: JSON.stringify({
       model: 'claude-sonnet-4-6', max_tokens: 200,
-      system: `You write Kling AI video prompts. Character:\n${BIBLE}\nReturn ONLY the prompt. No preamble. 60-90 words.`,
-      messages: [{ role:'user', content:`${moodCtx}\n${dirCtx ? 'DIRECTION: '+dirCtx : ''}\n${voiceCtx}\nFORMAT: ${format}, 8-second clip. Open with camera framing. Describe character. Describe action arc.${phraseText ? ' The mouth faces camera with subtle natural talking movement (soft open/close), not a fixed wide-open shape.' : ''} End: soft neutral studio lighting, seamless loop.` }]
+      system: `You write Veo 3 video prompts for social media clips. Character:\n${BIBLE}\nReturn ONLY the prompt. No preamble. 60-90 words.`,
+      messages: [{ role:'user', content:`${moodCtx}\n${voiceCtx}\nFORMAT: ${format}, 8-second clip. Open with camera framing the character. Describe character appearance. Describe full action arc.${phraseText ? ' The mouth faces camera with subtle natural talking movement (soft open/close), not a fixed wide-open shape.' : ''} End: lighting consistent, seamless loop.` }]
     })
   });
   const d = await res.json();
@@ -1901,8 +1893,9 @@ async function generate() {
   let audioBlob = null, videoUrl = null;
 
   try {
-    setH('Writing prompt…', 'Claude is crafting the Kling brief');
-    const prompt = await buildPrompt(withVoice ? phrase : '');
+    setH('Writing prompt…', 'Claude is crafting the video brief');
+    const basePrompt = await buildPrompt(withVoice ? phrase : '');
+    const prompt = cameraMove ? `${basePrompt} Camera: ${CAMERA_PROMPTS[cameraMove]}.` : basePrompt;
 
     if (withVoice) {
       stepActive('step-tts','generating');
@@ -1949,9 +1942,8 @@ function show(state) {
 function showVideo(url, phrase, phraseLabel) {
   show('output');
   const vid = document.getElementById('result');
-  if (format==='9:16')     { vid.style.height='min(calc(100vh - 210px),500px)'; vid.style.width='auto'; }
-  else if (format==='1:1') { vid.style.height='min(calc(100vh - 210px),440px)'; vid.style.width='min(calc(100vh - 210px),440px)'; }
-  else                      { vid.style.width='min(calc(100% - 48px),700px)'; vid.style.height='auto'; }
+  if (format==='9:16') { vid.style.height='min(calc(100vh - 210px),500px)'; vid.style.width='auto'; }
+  else                 { vid.style.width='min(calc(100% - 48px),700px)'; vid.style.height='auto'; }
   vid.src=url; vid.play();
 
   document.getElementById('meta-mood').textContent   = mood?.toUpperCase()||'CUSTOM';
@@ -2094,7 +2086,6 @@ function addHistory(url, label) {
 function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function toast(msg) { const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),2200); }
 
-document.getElementById('direction').addEventListener('keydown', e=>{ if((e.metaKey||e.ctrlKey)&&e.key==='Enter'){e.preventDefault();generate();} });
 document.getElementById('custom-phrase').addEventListener('keydown', e=>{ if((e.metaKey||e.ctrlKey)&&e.key==='Enter'){e.preventDefault();generate();} });
 
 show('empty'); tick();

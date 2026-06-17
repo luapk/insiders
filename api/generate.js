@@ -3,10 +3,10 @@ import { GoogleGenAI } from '@google/genai';
 export const config = { maxDuration: 300 };
 
 const BACKGROUNDS = {
-  studio:      'soft neutral light grey studio background, clean professional lighting',
-  greenscreen: 'flat chroma-key green (#00B400) background, perfectly even lighting, no shadows, compositing-ready',
-  micro:       'blurred gut microbiome bacteria photographed under electron microscope in the background, warm amber and rust tones, extreme macro bokeh, soft out-of-focus depth-of-field',
-  '3d':        'stylised 3D-rendered gut microbiome environment in the background, colourful bacteria cells and rods, vibrant science-visualisation backdrop, soft bokeh depth-of-field',
+  studio:      'background is a soft neutral light-grey studio void with clean diffused professional lighting and a subtle vignette',
+  greenscreen: 'background is a perfectly flat chroma-key green (#00B400), evenly lit with no shadows, gradients, or reflections — compositing-ready',
+  micro:       'background is a richly textured warm amber and rust bokeh field — glowing gut-microbiome bacteria and filaments photographed under an electron microscope, beautifully out-of-focus with extreme depth-of-field. The background glows with warm golden-amber light and fills the entire frame behind the character',
+  '3d':        'background is a vibrant stylised 3D-rendered gut microbiome world — colourful glowing bacteria cells and rods, luminous science-visualisation colours of cyan, magenta, and gold, all beautifully soft and out-of-focus behind the character, filling the entire frame with depth',
 };
 
 export default async function handler(req, res) {
@@ -23,7 +23,7 @@ export default async function handler(req, res) {
   if (!prompt) return res.status(400).json({ error: 'prompt is required' });
 
   const bgPrompt = BACKGROUNDS[background] || BACKGROUNDS.studio;
-  const fullPrompt = `${prompt} Background: ${bgPrompt}.`;
+  const fullPrompt = `Environment: ${bgPrompt}. ${prompt}`;
   const aspectRatio = format === '9:16' ? '9:16' : '16:9';
 
   try {
