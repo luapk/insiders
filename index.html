@@ -1645,12 +1645,12 @@ const BIBLE = `IAMS Gut Bacteria character:
 - NEVER add clothing, hats, fingers, or unlisted features`;
 
 const MOOD_BRIEFS = {
-  hype:  'HIGH ENERGY: Rapid full-body bouncing, arms pumping overhead, eyes wide and sparkling, mouth open wide in a joyful shout. Mouth must stay open and expressive throughout for lip-sync.',
-  win:   'CELEBRATION: Body inflates proudly, one arm curls into a flex, eyes crinkle into a smile. Mouth open in a triumphant grin ready for lip-sync.',
-  wave:  'WARM GREETING: Arm waves gently, body tilts toward camera, eyes soft. Mouth in a friendly open talking shape for lip-sync.',
-  shock: 'SURPRISE: Eyes shoot to maximum size, body squashes then springs, arms fly wide, mouth drops fully open — holds for lip-sync.',
-  dance: 'RHYTHMIC JOY: Body sways and wiggles, arms drift freely, eyes blink happily. Mouth open in a wide joyful smile for lip-sync.',
-  love:  'WARMTH: Body pulses gently, arms wrap inward, eyes squint warmly. Mouth in a soft open loving expression for lip-sync.'
+  hype:  'HIGH ENERGY: Rapid full-body bouncing, arms pumping overhead, eyes wide and sparkling, a joyful animated expression with lively natural mouth movement.',
+  win:   'CELEBRATION: Body inflates proudly, one arm curls into a flex, eyes crinkle into a smile, mouth in a triumphant grin with gentle talking movement.',
+  wave:  'WARM GREETING: Arm waves gently, body tilts toward camera, eyes soft, mouth in a friendly expression with subtle natural talking movement.',
+  shock: 'SURPRISE: Eyes shoot to maximum size, body squashes then springs, arms fly wide, mouth animated in an expressive surprised shape.',
+  dance: 'RHYTHMIC JOY: Body sways and wiggles, arms drift freely, eyes blink happily, mouth in a wide joyful smile with lively movement.',
+  love:  'WARMTH: Body pulses gently, arms wrap inward, eyes squint warmly, mouth in a soft loving expression with gentle movement.'
 };
 
 // ─── STATE ────────────────────────────────────────────────────────────────────
@@ -1773,14 +1773,14 @@ async function makeJWT() {
 async function buildPrompt(phraseText) {
   const moodCtx  = mood ? `MOOD: ${MOOD_BRIEFS[mood]}` : '';
   const dirCtx   = document.getElementById('direction').value.trim();
-  const voiceCtx = phraseText ? `Character speaks: "${phraseText}" — mouth must be open, facing camera, expressive throughout for lip-sync.` : '';
+  const voiceCtx = phraseText ? `The character is talking — give it subtle, natural mouth movement (gentle opening and closing as if speaking softly), facing camera, lively but not exaggerated.` : '';
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: { 'Content-Type':'application/json','x-api-key':getCLAUDE_KEY(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true' },
     body: JSON.stringify({
       model: 'claude-sonnet-4-6', max_tokens: 200,
       system: `You write Kling AI video prompts. Character:\n${BIBLE}\nReturn ONLY the prompt. No preamble. 60-90 words.`,
-      messages: [{ role:'user', content:`${moodCtx}\n${dirCtx ? 'DIRECTION: '+dirCtx : ''}\n${voiceCtx}\nFORMAT: ${format}, 5-second clip. Open with camera framing. Describe character. Describe action arc. Mouth must face camera and stay open/expressive. End: soft neutral studio lighting, seamless loop.` }]
+      messages: [{ role:'user', content:`${moodCtx}\n${dirCtx ? 'DIRECTION: '+dirCtx : ''}\n${voiceCtx}\nFORMAT: ${format}, 5-second clip. Open with camera framing. Describe character. Describe action arc.${phraseText ? ' The mouth faces camera with subtle natural talking movement (soft open/close), not a fixed wide-open shape.' : ''} End: soft neutral studio lighting, seamless loop.` }]
     })
   });
   const d = await res.json();
@@ -1840,52 +1840,6 @@ async function pollKling(taskId) {
   throw new Error('Kling: timed out');
 }
 
-// ─── STEP 5: Lip-sync ─────────────────────────────────────────────────────────
-// Send the voice clip inline as base64 (audio_type:'file') so no external audio
-// hosting is required — the clip never has to live at a public URL.
-function blobToB64(blob) {
-  return new Promise((resolve, reject) => {
-    const r = new FileReader();
-    r.onloadend = () => resolve(String(r.result).split(',')[1]); // strip data: prefix
-    r.onerror = reject;
-    r.readAsDataURL(blob);
-  });
-}
-
-async function submitLipSync(video, audioBlob) {
-  const token = await makeJWT();
-  const audioB64 = await blobToB64(audioBlob);
-  // Per Kling docs the video reference lives INSIDE input, and video_id / video_url
-  // are mutually exclusive. Kling's text2video result doesn't always expose an id,
-  // so fall back to the video_url we already have (Kling can fetch its own CDN url).
-  const ref = video.id ? { video_id: video.id } : { video_url: video.url };
-  const res = await fetch(`${PROXY}/v1/videos/lip-sync`, {
-    method:'POST',
-    headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
-    body: JSON.stringify({ input:{ ...ref, mode:'audio2video', audio_type:'file', audio_file: audioB64 } })
-  });
-  if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(`Lip-sync (${res.status}): ${e.message||res.statusText}`); }
-  const d = await res.json();
-  const taskId = d?.data?.task_id;
-  if (!taskId) throw new Error('Lip-sync: no task ID');
-  return taskId;
-}
-
-async function pollLipSync(taskId) {
-  for (let i=0;i<40;i++) {
-    await sleep(4000);
-    const token = await makeJWT();
-    const res = await fetch(`${PROXY}/v1/videos/lip-sync/${taskId}`, {headers:{'Authorization':`Bearer ${token}`}});
-    if (!res.ok) continue;
-    const d = await res.json();
-    const t = d?.data;
-    if (!t) continue;
-    if (t.task_status==='succeed') { const url=t?.task_result?.videos?.[0]?.url; if (!url) throw new Error('Lip-sync: no URL'); return url; }
-    if (t.task_status==='failed') throw new Error(`Lip-sync failed: ${t.task_status_msg||'unknown'}`);
-  }
-  throw new Error('Lip-sync: timed out');
-}
-
 // ─── ORCHESTRATE ──────────────────────────────────────────────────────────────
 async function generate() {
   if (busy) return;
@@ -1894,11 +1848,11 @@ async function generate() {
   const withVoice = !noVoice && phrase;
 
   busy = true; tick(); show('loading'); resetSteps();
-  // 'step-host' (audio upload) is no longer used — audio goes to lip-sync inline.
+  // 'step-host' (audio upload) and 'step-sync' (Kling lip-sync) are retired —
+  // the voiceover is played in sync with the muted clip client-side instead.
   document.getElementById('step-host').style.display = 'none';
-  ['step-tts','step-sync'].forEach(id => {
-    document.getElementById(id).style.display = withVoice ? '' : 'none';
-  });
+  document.getElementById('step-sync').style.display = 'none';
+  document.getElementById('step-tts').style.display = withVoice ? '' : 'none';
 
   let audioBlob = null, videoUrl = null;
 
@@ -1920,13 +1874,8 @@ async function generate() {
     videoUrl = video.url;
     stepDone('step-video','✓');
 
-    if (withVoice) {
-      stepActive('step-sync','syncing');
-      setH('Syncing voice…','Kling lip-sync running');
-      const lipTaskId = await submitLipSync(video, audioBlob);
-      videoUrl = await pollLipSync(lipTaskId);
-      stepDone('step-sync','✓');
-    }
+    // Voiceover plays in sync with the muted clip in showVideo() — no server-side
+    // lip-sync (Kling's face detector rejects the non-human character).
 
     showVideo(videoUrl, phrase, noVoice ? 'No voice' : phrase);
     addHistory(videoUrl, mood?.toUpperCase()||'CUSTOM');
@@ -1968,10 +1917,23 @@ function showVideo(url, phrase, phraseLabel) {
   document.getElementById('meta-fmt').textContent    = format;
   document.getElementById('meta-phrase').textContent = phraseLabel.length>24 ? phraseLabel.slice(0,24)+'…' : phraseLabel;
 
+  const audio = document.getElementById('audio-player');
   if (lastAudioBlob && phrase) {
-    document.getElementById('audio-player').src = URL.createObjectURL(lastAudioBlob);
+    audio.src = URL.createObjectURL(lastAudioBlob);
+    audio.loop = false;
     document.getElementById('audio-preview').style.display='flex';
+    // Keep the voiceover running in time with the looping muted clip.
+    vid.onplay  = () => { audio.play().catch(()=>{}); };
+    vid.onpause = () => audio.pause();
+    vid.ontimeupdate = () => {
+      if (Math.abs(audio.currentTime - vid.currentTime) > 0.25) {
+        try { audio.currentTime = vid.currentTime; } catch(e){}
+      }
+    };
+    audio.play().catch(()=>{}); // may be blocked until interaction; preview button is the fallback
   } else {
+    audio.pause();
+    vid.onplay = vid.onpause = vid.ontimeupdate = null;
     document.getElementById('audio-preview').style.display='none';
   }
 
