@@ -1582,17 +1582,31 @@ async function testKeys() {
     badge('t-claude', r.ok ? 'ok' : 'err', r.ok ? '✓ valid' : `✗ ${r.status}`);
   } catch(e) { badge('t-claude','err','✗ network'); }
 
-  // ElevenLabs — use /v1/user (lightweight auth check, no quota cost)
+  // ElevenLabs — POST to the TTS endpoint with an empty body. This checks the
+  // exact permission generation needs, without spending credits: a key WITH
+  // text_to_speech access gets past auth and fails body validation (422); a key
+  // without it is rejected at auth (401 missing_permissions); an unknown key
+  // returns 401 invalid_api_key.
   try {
-    const r = await fetch('https://api.elevenlabs.io/v1/user', {
-      headers:{'xi-api-key': elevenKey}
+    const voiceId = document.getElementById('s-voice').value.trim() || '21m00Tcm4TlvDq8ikWAM';
+    const r = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json','xi-api-key': elevenKey},
+      body: JSON.stringify({})
     });
-    if (r.ok) {
+    if (r.status === 422 || r.ok) {
+      // Passed auth + permission check (422 = empty body rejected after auth)
       badge('t-eleven','ok','✓ valid');
-    } else {
+    } else if (r.status === 401) {
       const body = await r.json().catch(()=>({}));
-      const msg = body?.detail?.message || body?.detail || r.status;
-      badge('t-eleven','err', r.status===401 ? '✗ invalid key' : `✗ ${r.status}`);
+      const status = body?.detail?.status || '';
+      if (status === 'missing_permissions' || /permission/i.test(JSON.stringify(body))) {
+        badge('t-eleven','err','✗ enable TTS access');
+      } else {
+        badge('t-eleven','err','✗ invalid key');
+      }
+    } else {
+      badge('t-eleven','err',`✗ ${r.status}`);
     }
   } catch(e) { badge('t-eleven','err','✗ network'); }
 
