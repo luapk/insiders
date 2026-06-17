@@ -1671,7 +1671,7 @@ async function testKeys() {
 // This is the master reference. CHARACTER_CORE goes directly into every Veo prompt.
 // Never deviate from this spec — it enforces consistency across all generations.
 
-const CHARACTER_CORE = `CHARACTER: Chibi humanoid — oversized smooth rounded dome head (approx 60% of total height), short stubby torso, small round arms and legs, no neck. Material: CLEAR translucent iridescent glass-resin — pearlescent rainbow subsurface scattering, wet glossy surface, a single soft specular highlight on the crown of the dome. Interior: a dense tangle of fine GOLDEN-AMBER coral-like filaments glowing warmly inside the head and trailing into the body — like illuminated brain-coral or delicate gold noodles. Eyes: exactly TWO small round eyes with subtle TEAL-DARK pupils, set LOW on the face, slightly inset — small and understated, NOT large, NO white sclera, NOT Pixar-style round cartoon eyes, NOT anime — alien, quiet, slightly insectoid, matching the reference image exactly. Tiny circular mouth, barely visible at rest, subtle open-close ONLY when speaking. The character FLOATS weightlessly in mid-air with a slow gentle breathing bob — feet completely clear of any surface, genuinely suspended in space. NEVER: opaque, purple-tinted, featureless, clothed, wearing hats, large white eyes, standing on ground.`;
+const CHARACTER_CORE = `CHARACTER: Chibi humanoid — oversized smooth rounded dome head (approx 60% of total height), short stubby torso, small round arms and legs, no neck. Material: CLEAR translucent iridescent glass-resin — pearlescent rainbow subsurface scattering, wet glossy surface, a single soft specular highlight on the crown of the dome. Interior: a dense tangle of fine GOLDEN-AMBER coral-like filaments glowing warmly inside the head and trailing into the body — like illuminated brain-coral or delicate gold noodles. Eyes: exactly TWO small round eyes with subtle TEAL-DARK pupils, set LOW on the face, slightly inset — small and understated, NOT large, NO white sclera, NOT Pixar-style round cartoon eyes, NOT anime — alien, quiet, slightly insectoid, matching the reference image exactly. Mouth: small circular opening, closed and barely visible at rest. When the character speaks: the mouth opens and closes continuously to form each word — jaw drops for open vowels, lips press together for B/M/P sounds, mouth is NEVER frozen open or shut mid-speech, always in motion matching the words. The character FLOATS weightlessly in mid-air with a slow gentle breathing bob — feet completely clear of any surface, genuinely suspended in space. NEVER: opaque, purple-tinted, featureless, clothed, wearing hats, large white eyes, standing on ground, frozen mouth.`;
 
 // Action descriptions — used as Claude's creative brief. Claude writes the physical
 // movement only; the compiler handles everything structural.
@@ -1839,32 +1839,47 @@ function tick() {
 
 // ─── MASTER SHOT COMPILER ─────────────────────────────────────────────────────
 // Claude writes ONLY the action sequence (25-40 words, present tense, starts with a verb).
-// Everything structural — character, float, environment, camera, quality — is assembled
-// deterministically so Veo 3.1 receives a multi-block prompt it can parse reliably.
+// Everything structural — character, float, dialogue, environment, camera, quality — is
+// assembled deterministically so Veo 3.1 receives a multi-block prompt it can parse reliably.
+//
+// AUDIO SYNC STRATEGY: We pass the exact VO phrase into a DIALOGUE block in the Veo prompt.
+// Veo 3.1 will animate the mouth to match those specific words (phoneme shapes, jaw movement).
+// We then mute the Veo audio and layer ElevenLabs on top client-side — the result is
+// a visual that was *generated* to mouth those words, playing in sync with the matching audio.
 async function compileMasterShot(phraseText) {
   const moodBrief = MOOD_BRIEFS[mood] || '';
-  const speechNote = phraseText
-    ? `The character speaks — include subtle natural mouth movement (soft open-close only): "${phraseText}"`
-    : 'Silent clip — no mouth movement.';
+
+  // Tell Claude whether the character speaks so it can blend action + speech in the brief
+  const speechCtx = phraseText
+    ? `The character speaks while performing the action. Blend body expression with the act of speaking — they coexist. Keep mouth movement implicit in the description.`
+    : 'Silent — no speech.';
 
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: { 'Content-Type':'application/json','x-api-key':getCLAUDE_KEY(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true' },
     body: JSON.stringify({
       model: 'claude-sonnet-4-6', max_tokens: 100,
-      system: `Write a 25-40 word action sequence for a CGI character clip. Present tense. Start with a strong verb. Describe body movement, energy and expression ONLY — no setting, no camera, no character description. Be physically specific and visceral.`,
-      messages: [{ role:'user', content:`Action preset: ${moodBrief}\n${speechNote}` }]
+      system: `Write a 25-40 word action sequence for a CGI character clip. Present tense. Start with a strong verb. Body movement, energy and expression ONLY — no setting, no camera, no character description. Physically specific and visceral.`,
+      messages: [{ role:'user', content: `Action preset: ${moodBrief}\n${speechCtx}` }]
     })
   });
   const d = await res.json();
   if (d.error) throw new Error(`Claude: ${d.error.message}`);
-  const actionDesc = d.content.map(b=>b.text||'').join('').trim();
+  const actionDesc = d.content.map(b => b.text || '').join('').trim();
+
+  // DIALOGUE block — only present when voice is on.
+  // Giving Veo the exact words drives mouth-shape generation for those phonemes.
+  // Eyes and expression must not drift (continuity bible).
+  const dialogueBlock = phraseText ? `DIALOGUE: The character speaks these exact words aloud, mouth animating to every syllable with natural phoneme shapes:
+"${phraseText}"
+Lip detail: lips part for vowels, close for B/M/P sounds, jaw drops for open vowels, tongue visible briefly on T/D/L sounds. The mouth is continuously animated throughout the speech — no frozen or static mouth. Eyes remain identical to the reference image; expression consistent with the action above. Do NOT widen eyes or change their shape during speech.` : null;
 
   // Assemble optimal Veo 3.1 multi-block prompt — each block is a separate directive layer
   const blocks = [
     getShotOpener(),
     CHARACTER_CORE,
     actionDesc,
+    dialogueBlock,
     BG_BRIEFS[background] || BG_BRIEFS.studio,
     cameraMove ? CAMERA_PROMPTS[cameraMove] : null,
     `QUALITY: Photorealistic CGI animation. Soft subsurface scattering through glass. Cinematic depth of field. ${format === '9:16' ? 'Vertical 9:16 social format.' : 'Widescreen 16:9.'} 8-second seamless loop.`,
