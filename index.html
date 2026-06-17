@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@300;400;500&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css"/>
 <style>
 /* ─── TOKENS ─────────────────────────────────────────────────────────── */
 :root {
@@ -15,22 +16,22 @@
   --s1:        #f0f0ed;
   --s2:        #e6e6e3;
   --s3:        #d8d8d4;
-  --glass:     rgba(255,255,255,0.70);
+  --glass:     rgba(255,255,255,0.72);
   --glass-hi:  rgba(255,255,255,0.92);
   --line:      rgba(0,0,0,0.07);
   --line-hi:   rgba(0,0,0,0.14);
   --text:      #111111;
   --text-2:    #4a4a47;
   --text-3:    #9a9994;
-  --accent:    #00a86b;
-  --accent-hi: #007a4d;
-  --accent-lo: rgba(0,168,107,0.08);
-  --green:     #00a86b;
+  --accent:    #aaff00;
+  --accent-hi: #88cc00;
+  --accent-lo: rgba(170,255,0,0.09);
+  --green:     #aaff00;
   --amber:     #b45309;
   --rose:      #dc2626;
   --hype:      #ff5c35;
   --win:       #e6a800;
-  --wave:      #00a86b;
+  --wave:      #aaff00;
   --shock:     #0891b2;
   --dance:     #9333ea;
   --love:      #e11d48;
@@ -70,14 +71,15 @@ body::after {
 
 /* ─── HEADER ─────────────────────────────────────────────────────────── */
 header {
-  height: 48px;
+  height: 64px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 20px;
   border-bottom: 1px solid var(--line);
-  background: rgba(255,255,255,0.90);
+  background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,248,245,0.90) 100%);
   backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
   position: relative;
   z-index: 100;
   gap: 16px;
@@ -110,9 +112,7 @@ header {
   color: var(--text);
 }
 
-.logo-text span {
-  color: var(--accent);
-}
+.logo-text span { color: var(--text); }
 
 .header-right {
   display: flex;
@@ -124,13 +124,14 @@ header {
   display: flex;
   align-items: center;
   gap: 6px;
-  background: var(--s1);
+  background: linear-gradient(135deg, rgba(255,255,255,0.80) 0%, rgba(240,240,237,0.70) 100%);
   border: 1px solid var(--line);
   border-radius: 20px;
   padding: 4px 10px;
   font-size: 10px;
   color: var(--text-2);
   font-family: var(--mono);
+  backdrop-filter: blur(8px);
 }
 
 .status-dot {
@@ -138,7 +139,7 @@ header {
   height: 6px;
   border-radius: 50%;
   background: var(--green);
-  box-shadow: 0 0 8px rgba(0,168,107,0.50);
+  box-shadow: 0 0 8px rgba(170,255,0,0.70);
   animation: breathe 2.5s ease-in-out infinite;
 }
 
@@ -156,7 +157,7 @@ header {
 #app {
   display: grid;
   grid-template-columns: 400px 1fr;
-  height: calc(100vh - 48px);
+  height: calc(100vh - 64px);
 }
 
 /* ─── LEFT PANEL ─────────────────────────────────────────────────────── */
@@ -164,14 +165,18 @@ header {
   border-right: 1px solid var(--line);
   display: flex;
   flex-direction: column;
-  background: var(--s0);
+  background: linear-gradient(160deg, #ffffff 0%, #f5f5f2 100%);
+  position: relative;
+  z-index: 10;
   overflow: hidden;
+  min-height: 0;
 }
 
 #left-scroll {
   flex: 1;
   overflow-y: auto;
   padding: 14px;
+  min-height: 0;
 }
 
 /* ─── SECTION LABEL ──────────────────────────────────────────────────── */
@@ -204,33 +209,29 @@ header {
 
 /* tooltip */
 .info-btn {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: var(--s2);
-  border: 1px solid var(--line);
-  color: var(--text-3);
-  font-size: 8px;
+  width: 18px;
+  height: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: default;
-  font-family: var(--sans);
-  font-style: italic;
-  font-weight: 600;
   position: relative;
   flex-shrink: 0;
-  transition: border-color 0.15s, color 0.15s;
+  transition: color 0.15s;
+  z-index: 9100;
+  color: var(--text-3);
+  font-size: 15px;
 }
 
-.info-btn:hover { border-color: var(--accent); color: var(--accent); }
+.info-btn:hover { color: var(--accent); }
 
 .tooltip {
   position: absolute;
-  left: calc(100% + 8px);
-  top: 50%;
-  transform: translateY(-50%);
-  background: var(--s0);
+  right: -4px;
+  left: auto;
+  top: calc(100% + 6px);
+  transform: none;
+  background: linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(248,248,245,0.96) 100%);
   border: 1px solid var(--line-hi);
   border-radius: var(--r-md);
   padding: 9px 12px;
@@ -241,9 +242,11 @@ header {
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.15s;
-  z-index: 200;
+  z-index: 9000;
   font-family: var(--mono);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.10);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }
 
 .info-btn:hover .tooltip { opacity: 1; }
@@ -256,7 +259,7 @@ header {
 
 .char-select-trigger {
   width: 100%;
-  background: var(--s1);
+  background: linear-gradient(135deg, rgba(255,255,255,0.88) 0%, rgba(240,240,237,0.72) 100%);
   border: 1px solid var(--line);
   border-radius: var(--r-md);
   padding: 10px 12px;
@@ -264,11 +267,14 @@ header {
   align-items: center;
   gap: 10px;
   cursor: pointer;
-  transition: border-color 0.15s;
+  transition: border-color 0.15s, box-shadow 0.15s;
   user-select: none;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.9);
 }
 
-.char-select-trigger:hover { border-color: var(--line-hi); }
+.char-select-trigger:hover { border-color: var(--line-hi); box-shadow: 0 4px 16px rgba(0,0,0,0.07), inset 0 1px 0 rgba(255,255,255,1); }
 
 .char-preview {
   width: 48px;
@@ -321,13 +327,14 @@ header {
   font-family: var(--mono);
 }
 
-.tag.hi { border-color: rgba(0,168,107,0.25); color: var(--accent); background: rgba(0,168,107,0.06); }
+.tag.hi { border-color: rgba(170,255,0,0.35); color: var(--text); background: rgba(170,255,0,0.10); }
 
 .chevron {
   color: var(--text-3);
-  font-size: 10px;
+  font-size: 14px;
   transition: transform 0.2s;
   flex-shrink: 0;
+  line-height: 1;
 }
 
 .char-dropdown {
@@ -335,7 +342,7 @@ header {
   top: calc(100% + 4px);
   left: 0;
   right: 0;
-  background: var(--s0);
+  background: linear-gradient(135deg, rgba(255,255,255,0.97) 0%, rgba(248,248,245,0.94) 100%);
   border: 1px solid var(--line-hi);
   border-radius: var(--r-md);
   overflow: hidden;
@@ -343,6 +350,7 @@ header {
   display: none;
   box-shadow: 0 16px 48px rgba(0,0,0,0.12);
   backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
 }
 
 .char-dropdown.open { display: block; }
@@ -359,8 +367,8 @@ header {
 }
 
 .char-option:last-child { border-bottom: none; }
-.char-option:hover { background: var(--s1); }
-.char-option.active { background: rgba(0,168,107,0.05); }
+.char-option:hover { background: rgba(255,255,255,0.70); }
+.char-option.active { background: rgba(170,255,0,0.08); }
 .char-option.disabled { cursor: not-allowed; opacity: 0.5; }
 
 .char-option-dot {
@@ -391,12 +399,14 @@ header {
 
 /* ─── PHRASE PANEL ───────────────────────────────────────────────────── */
 .phrase-panel {
-  background: var(--glass);
+  background: linear-gradient(160deg, rgba(255,255,255,0.82) 0%, rgba(240,240,237,0.65) 100%);
   border: 1px solid var(--line);
   border-radius: var(--r-lg);
   overflow: hidden;
   margin-bottom: 4px;
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 2px 16px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.9);
 }
 
 .phrase-tabs {
@@ -421,8 +431,12 @@ header {
 }
 
 .ptab:last-child { border-right: none; }
-.ptab:hover { color: var(--text-2); background: var(--s1); }
-.ptab.active { color: var(--accent); background: rgba(0,168,107,0.05); }
+.ptab:hover { color: var(--text-2); background: rgba(255,255,255,0.50); }
+.ptab.active {
+  color: #000000;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hi) 100%);
+  border-color: transparent;
+}
 
 .phrase-list {
   padding: 8px;
@@ -437,14 +451,14 @@ header {
   gap: 8px;
   padding: 8px 10px;
   border-radius: var(--r-sm);
-  background: var(--s0);
+  background: rgba(255,255,255,0.70);
   border: 1px solid transparent;
   cursor: pointer;
   transition: border-color 0.12s, background 0.12s;
 }
 
-.phrase-row:hover { border-color: var(--line-hi); background: var(--s1); }
-.phrase-row.active { border-color: rgba(0,168,107,0.35); background: rgba(0,168,107,0.05); }
+.phrase-row:hover { border-color: var(--line-hi); background: rgba(255,255,255,0.90); }
+.phrase-row.active { border-color: rgba(170,255,0,0.40); background: rgba(170,255,0,0.08); }
 
 .phrase-sel {
   width: 14px;
@@ -469,7 +483,7 @@ header {
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: var(--s0);
+  background: var(--text);
 }
 
 .phrase-copy {
@@ -495,7 +509,7 @@ header {
 .custom-phrase-wrap { padding: 8px; }
 .custom-phrase-wrap textarea {
   width: 100%;
-  background: var(--s0);
+  background: rgba(255,255,255,0.80);
   border: 1px solid var(--line);
   border-radius: var(--r-sm);
   padding: 9px 10px;
@@ -509,7 +523,7 @@ header {
   transition: border-color 0.15s;
 }
 
-.custom-phrase-wrap textarea:focus { border-color: rgba(0,168,107,0.40); }
+.custom-phrase-wrap textarea:focus { border-color: rgba(170,255,0,0.50); }
 .custom-phrase-wrap textarea::placeholder { color: var(--text-3); }
 
 /* no voice */
@@ -519,7 +533,7 @@ header {
   gap: 8px;
   padding: 8px 10px;
   border-top: 1px solid var(--line);
-  background: var(--s1);
+  background: rgba(240,240,237,0.60);
 }
 
 .nv-label { font-size: 10px; color: var(--text-3); flex: 1; font-family: var(--mono); }
@@ -528,8 +542,8 @@ header {
 .toggle input { opacity: 0; width: 0; height: 0; }
 .toggle-track { position: absolute; inset: 0; background: var(--s2); border-radius: 16px; cursor: pointer; transition: background 0.2s; border: 1px solid var(--line); }
 .toggle-track::before { content: ''; position: absolute; height: 10px; width: 10px; left: 2px; top: 2px; background: var(--text-3); border-radius: 50%; transition: transform 0.2s, background 0.2s; }
-.toggle input:checked + .toggle-track { background: rgba(0,168,107,0.15); border-color: rgba(0,168,107,0.40); }
-.toggle input:checked + .toggle-track::before { transform: translateX(14px); background: var(--accent); }
+.toggle input:checked + .toggle-track { background: rgba(170,255,0,0.20); border-color: rgba(170,255,0,0.50); }
+.toggle input:checked + .toggle-track::before { transform: translateX(14px); background: var(--accent-hi); }
 
 /* ─── MOOD GRID ──────────────────────────────────────────────────────── */
 .mood-grid {
@@ -544,12 +558,15 @@ header {
   padding: 10px 6px;
   cursor: pointer;
   border: 1px solid var(--line);
-  background: var(--s1);
+  background: linear-gradient(135deg, rgba(255,255,255,0.85) 0%, rgba(240,240,237,0.65) 100%);
   text-align: center;
-  transition: transform 0.1s, border-color 0.12s, background 0.12s;
+  transition: transform 0.1s, border-color 0.12s, box-shadow 0.12s;
   position: relative;
   overflow: hidden;
   user-select: none;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 1px 8px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.9);
 }
 
 .mood-tile::before {
@@ -561,20 +578,27 @@ header {
   transition: opacity 0.15s;
 }
 
-.mood-tile:hover { transform: translateY(-1px); border-color: var(--line-hi); }
-.mood-tile:hover::before { opacity: 0.06; }
-.mood-tile.active { border-color: var(--mc); transform: translateY(-1px); }
-.mood-tile.active::before { opacity: 0.09; }
+.mood-tile:hover { transform: translateY(-1px); border-color: var(--line-hi); box-shadow: 0 4px 16px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,1); }
+.mood-tile:hover::before { opacity: 0.07; }
+.mood-tile.active {
+  border-color: var(--accent);
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hi) 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 20px rgba(170,255,0,0.40);
+}
+.mood-tile.active::before { opacity: 0; }
 
-.mood-emoji { font-size: 16px; display: block; margin-bottom: 3px; position: relative; }
+.mood-emoji { font-size: 20px; display: block; margin-bottom: 3px; position: relative; color: var(--accent); line-height: 1; }
 .mood-label { font-family: var(--sans); font-weight: 600; font-size: 10px; position: relative; color: var(--text-2); letter-spacing: 0.04em; }
 .mood-sub { font-size: 8px; color: var(--text-3); margin-top: 2px; line-height: 1.3; position: relative; font-family: var(--mono); }
-.mood-tile.active .mood-label { color: var(--text); }
+.mood-tile.active .mood-emoji { color: rgba(0,0,0,0.55); }
+.mood-tile.active .mood-label { color: #000000; }
+.mood-tile.active .mood-sub { color: rgba(0,0,0,0.45); }
 
 /* ─── DIRECTION ──────────────────────────────────────────────────────── */
 .direction-wrap textarea {
   width: 100%;
-  background: var(--s1);
+  background: linear-gradient(135deg, rgba(255,255,255,0.85) 0%, rgba(240,240,237,0.70) 100%);
   border: 1px solid var(--line);
   border-radius: var(--r-md);
   padding: 10px 12px;
@@ -589,8 +613,10 @@ header {
   margin-bottom: 4px;
 }
 
-.direction-wrap textarea:focus { border-color: rgba(0,168,107,0.40); }
+.direction-wrap textarea:focus { border-color: rgba(170,255,0,0.50); }
 .direction-wrap textarea::placeholder { color: var(--text-3); }
+.direction-wrap textarea:disabled { opacity: 0.30; cursor: pointer; }
+.direction-wrap textarea:disabled:hover { opacity: 0.45; }
 
 /* ─── FORMAT ─────────────────────────────────────────────────────────── */
 .format-grid {
@@ -601,18 +627,27 @@ header {
 }
 
 .fmt-btn {
-  background: var(--s1);
+  background: linear-gradient(135deg, rgba(255,255,255,0.85) 0%, rgba(240,240,237,0.65) 100%);
   border: 1px solid var(--line);
   border-radius: var(--r-md);
   padding: 9px 6px;
   cursor: pointer;
   text-align: center;
-  transition: transform 0.1s, border-color 0.15s;
+  transition: transform 0.1s, border-color 0.15s, box-shadow 0.15s;
   color: var(--text);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 1px 6px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.9);
 }
 
-.fmt-btn:hover { transform: translateY(-1px); border-color: var(--line-hi); }
-.fmt-btn.active { border-color: rgba(0,168,107,0.50); background: rgba(0,168,107,0.06); }
+.fmt-btn:hover { transform: translateY(-1px); border-color: var(--line-hi); box-shadow: 0 4px 12px rgba(0,0,0,0.07); }
+.fmt-btn.active {
+  border-color: var(--accent);
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hi) 100%);
+  box-shadow: 0 4px 20px rgba(170,255,0,0.40);
+}
+.fmt-btn.active .fmt-rect { background: rgba(0,0,0,0.55); }
+.fmt-btn.active .fmt-label { color: #000000; }
 
 .fmt-ratio {
   display: flex;
@@ -628,54 +663,47 @@ header {
   transition: background 0.15s;
 }
 
-.fmt-btn.active .fmt-rect { background: var(--accent); }
+.fmt-btn.active .fmt-rect { background: var(--accent-hi); }
 .fmt-label { font-size: 9px; color: var(--text-3); letter-spacing: 0.06em; font-family: var(--mono); }
-.fmt-btn.active .fmt-label { color: var(--accent); }
+.fmt-btn.active .fmt-label { color: var(--text); }
 
 /* ─── GENERATE BTN ───────────────────────────────────────────────────── */
-#left-footer {
-  padding: 12px 14px;
-  border-top: 1px solid var(--line);
-  background: var(--s0);
-  flex-shrink: 0;
-}
-
 #go-btn {
-  width: 100%;
-  height: 44px;
+  min-width: 200px;
+  height: 50px;
   background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hi) 100%);
   border: none;
   border-radius: var(--r-md);
-  color: #ffffff;
+  color: #000000;
   cursor: pointer;
   font-family: var(--sans);
   font-weight: 700;
-  font-size: 12px;
+  font-size: 13px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   transition: transform 0.1s, opacity 0.15s, box-shadow 0.15s;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0,168,107,0.25);
+  box-shadow: 0 4px 24px rgba(170,255,0,0.35);
 }
 
 #go-btn::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,0.25) 50%, transparent 65%);
+  background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,0.30) 50%, transparent 65%);
   transform: translateX(-100%);
   transition: transform 0.5s;
 }
 
-#go-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 28px rgba(0,168,107,0.35); }
+#go-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 28px rgba(170,255,0,0.45); }
 #go-btn:hover::after { transform: translateX(100%); }
 #go-btn:active { transform: translateY(0); }
-#go-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; box-shadow: none; }
+#go-btn:disabled { opacity: 0.25; cursor: not-allowed; transform: none; box-shadow: none; }
 
 /* ─── RIGHT PANEL ────────────────────────────────────────────────────── */
 #right {
-  background: var(--bg);
+  background: #000000;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -688,9 +716,9 @@ header {
 #right::before {
   content: '';
   position: absolute;
-  width: 600px;
-  height: 600px;
-  background: radial-gradient(ellipse, rgba(0,168,107,0.05) 0%, transparent 65%);
+  width: 800px;
+  height: 800px;
+  background: radial-gradient(ellipse, rgba(170,255,0,0.07) 0%, transparent 60%);
   top: 50%;
   left: 50%;
   transform: translate(-50%,-50%);
@@ -700,13 +728,20 @@ header {
 /* ─── EMPTY STATE ────────────────────────────────────────────────────── */
 #empty {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: 10px;
-  text-align: center;
+  gap: 40px;
+  padding: 24px;
   position: relative;
   z-index: 1;
   animation: fadeUp 0.4s ease-out;
+}
+
+.empty-cta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
 }
 
 .empty-char { animation: float 3.5s ease-in-out infinite; }
@@ -718,20 +753,39 @@ header {
   font-family: var(--serif);
   font-weight: 500;
   font-size: 24px;
-  color: var(--text);
-  margin-top: 4px;
+  color: #ffffff;
   letter-spacing: 0.01em;
 }
 
 .empty-sub {
   font-size: 11px;
-  color: var(--text-3);
+  color: rgba(255,255,255,0.45);
   max-width: 200px;
   line-height: 1.7;
   font-family: var(--sans);
 }
 
-.kbd { font-family: var(--mono); font-size: 9px; background: var(--s2); border: 1px solid var(--line); border-radius: 4px; padding: 2px 6px; color: var(--text-3); }
+.kbd { font-family: var(--mono); font-size: 9px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 4px; padding: 2px 6px; color: rgba(255,255,255,0.35); }
+
+/* ─── BACKGROUND ────────────────────────────────────────────────────── */
+.bg-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin-bottom: 4px; }
+.bg-btn {
+  background: linear-gradient(135deg, rgba(255,255,255,0.85) 0%, rgba(240,240,237,0.65) 100%);
+  border: 1px solid var(--line); border-radius: var(--r-md);
+  padding: 8px 4px 6px; cursor: pointer; text-align: center;
+  transition: all 0.15s; display: flex; flex-direction: column; align-items: center; gap: 4px;
+}
+.bg-btn:hover { border-color: var(--line-hi); transform: translateY(-1px); }
+.bg-btn.active {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hi) 100%);
+  border-color: var(--accent); box-shadow: 0 4px 16px rgba(170,255,0,0.35);
+}
+.bg-swatch {
+  width: 28px; height: 20px; border-radius: 4px; border: 1px solid rgba(0,0,0,0.12);
+  flex-shrink: 0;
+}
+.bg-label { font-size: 8px; font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-3); }
+.bg-btn.active .bg-label { color: #000; }
 
 /* ─── PIPELINE ───────────────────────────────────────────────────────── */
 #loading {
@@ -744,8 +798,8 @@ header {
   width: 280px;
 }
 
-.loading-title { font-family: var(--serif); font-weight: 500; font-size: 20px; color: var(--text); letter-spacing: 0.01em; }
-.loading-sub { font-size: 10px; color: var(--text-3); font-family: var(--mono); }
+.loading-title { font-family: var(--serif); font-weight: 500; font-size: 20px; color: #ffffff; letter-spacing: 0.01em; }
+.loading-sub { font-size: 10px; color: rgba(255,255,255,0.45); font-family: var(--mono); }
 
 .pipeline { width: 100%; margin-top: 4px; display: flex; flex-direction: column; gap: 3px; }
 
@@ -755,24 +809,24 @@ header {
   gap: 10px;
   padding: 9px 12px;
   border-radius: var(--r-md);
-  background: var(--s0);
-  border: 1px solid var(--line);
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.10);
   font-size: 10px;
   transition: border-color 0.3s, background 0.3s;
 }
 
-.pipe-step.done   { border-color: rgba(0,168,107,0.25); background: rgba(0,168,107,0.04); }
-.pipe-step.active { border-color: rgba(0,168,107,0.30); background: rgba(0,168,107,0.05); }
+.pipe-step.done   { border-color: rgba(170,255,0,0.25); background: rgba(170,255,0,0.06); }
+.pipe-step.active { border-color: rgba(170,255,0,0.40); background: rgba(170,255,0,0.09); }
 .pipe-step.hidden { display: none; }
 
-.step-icon { font-size: 13px; width: 18px; text-align: center; flex-shrink: 0; }
-.step-label { flex: 1; color: var(--text-2); font-family: var(--sans); font-size: 11px; }
-.step-status { font-size: 9px; color: var(--text-3); letter-spacing: 0.06em; font-family: var(--mono); }
-.pipe-step.done   .step-status { color: var(--green); }
+.step-icon { font-size: 14px; width: 18px; text-align: center; flex-shrink: 0; color: var(--accent); line-height: 1; }
+.step-label { flex: 1; color: rgba(255,255,255,0.65); font-family: var(--sans); font-size: 11px; }
+.step-status { font-size: 9px; color: rgba(255,255,255,0.35); letter-spacing: 0.06em; font-family: var(--mono); }
+.pipe-step.done   .step-status { color: rgba(170,255,0,0.75); }
 .pipe-step.active .step-status { color: var(--accent); animation: blink 1.5s infinite; }
 @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
-.spinner-sm { width: 11px; height: 11px; border: 1.5px solid rgba(0,168,107,0.20); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; }
+.spinner-sm { width: 11px; height: 11px; border: 1.5px solid rgba(170,255,0,0.25); border-top-color: var(--accent-hi); border-radius: 50%; animation: spin 0.7s linear infinite; }
 @keyframes spin { to{transform:rotate(360deg)} }
 
 /* ─── OUTPUT ─────────────────────────────────────────────────────────── */
@@ -784,6 +838,7 @@ header {
   width: 100%;
   height: 100%;
   padding: 16px;
+  padding-bottom: 64px; /* clear the absolutely-positioned history strip */
   position: relative;
   z-index: 1;
 }
@@ -791,11 +846,17 @@ header {
 .video-wrap { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 0; width: 100%; }
 
 video#result {
+  display: block;
   max-height: 100%;
   border-radius: var(--r-lg);
-  background: var(--s2);
-  box-shadow: 0 24px 64px rgba(0,0,0,0.12), 0 0 0 1px var(--line);
+  background: #111;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.60), 0 0 0 1px rgba(255,255,255,0.08);
+  outline: none;
 }
+/* suppress Chrome's PiP / cast overlay on the result video */
+video#result::-webkit-media-controls,
+video#result::-webkit-media-controls-overlay-play-button,
+video#result::-webkit-media-controls-start-playback-button { display: none !important; }
 
 .output-meta { display: flex; gap: 5px; flex-wrap: wrap; justify-content: center; flex-shrink: 0; }
 
@@ -803,16 +864,16 @@ video#result {
   font-size: 9px;
   letter-spacing: 0.07em;
   text-transform: uppercase;
-  background: var(--s1);
-  border: 1px solid var(--line);
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.12);
   border-radius: 20px;
   padding: 3px 9px;
-  color: var(--text-3);
+  color: rgba(255,255,255,0.45);
   font-family: var(--mono);
 }
 
-.meta-chip.c { border-color: rgba(0,168,107,0.30); color: var(--accent); background: rgba(0,168,107,0.06); }
-.meta-chip.p { border-color: rgba(0,122,77,0.30); color: var(--accent-hi); background: rgba(0,122,77,0.06); }
+.meta-chip.c { border-color: rgba(170,255,0,0.35); color: rgba(255,255,255,0.85); background: rgba(170,255,0,0.10); }
+.meta-chip.p { border-color: rgba(136,204,0,0.30); color: rgba(255,255,255,0.70); background: rgba(136,204,0,0.08); }
 
 .output-actions { display: flex; gap: 6px; flex-shrink: 0; flex-wrap: wrap; justify-content: center; }
 
@@ -830,29 +891,29 @@ video#result {
 .out-btn.primary {
   background: linear-gradient(135deg, var(--accent), var(--accent-hi));
   border-color: transparent;
-  color: #ffffff;
-  font-weight: 600;
-  box-shadow: 0 2px 12px rgba(0,168,107,0.20);
+  color: #000000;
+  font-weight: 700;
+  box-shadow: 0 2px 12px rgba(170,255,0,0.30);
 }
 
-.out-btn.primary:hover { transform: translateY(-1px); box-shadow: 0 4px 18px rgba(0,168,107,0.30); }
-.out-btn.ghost { background: transparent; border-color: var(--line-hi); color: var(--text-2); }
-.out-btn.ghost:hover { border-color: var(--accent); color: var(--accent); }
+.out-btn.primary:hover { transform: translateY(-1px); box-shadow: 0 4px 18px rgba(170,255,0,0.45); }
+.out-btn.ghost { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.15); color: rgba(255,255,255,0.60); }
+.out-btn.ghost:hover { border-color: rgba(255,255,255,0.30); color: #ffffff; }
 
 /* audio preview */
 .audio-preview {
   display: flex;
   align-items: center;
   gap: 9px;
-  background: rgba(0,168,107,0.05);
-  border: 1px solid rgba(0,168,107,0.15);
+  background: rgba(170,255,0,0.07);
+  border: 1px solid rgba(170,255,0,0.20);
   border-radius: var(--r-md);
   padding: 7px 12px;
   flex-shrink: 0;
 }
 
 .audio-preview audio { height: 26px; }
-.audio-label { font-size: 9px; color: var(--accent); letter-spacing: 0.06em; text-transform: uppercase; font-family: var(--mono); }
+.audio-label { font-size: 9px; color: rgba(255,255,255,0.55); letter-spacing: 0.06em; text-transform: uppercase; font-family: var(--mono); }
 
 /* ─── HISTORY STRIP ──────────────────────────────────────────────────── */
 #history-strip {
@@ -869,20 +930,20 @@ video#result {
   width: 36px;
   height: 36px;
   border-radius: var(--r-sm);
-  background: var(--s1);
-  border: 1px solid var(--line);
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
   cursor: pointer;
   overflow: hidden;
   transition: border-color 0.15s, transform 0.15s;
 }
 
-.hist-item:hover { border-color: var(--line-hi); transform: scale(1.08); }
-.hist-item.active { border-color: var(--accent); }
+.hist-item:hover { border-color: rgba(255,255,255,0.25); transform: scale(1.08); }
+.hist-item.active { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(170,255,0,0.20); }
 .hist-item video { width: 100%; height: 100%; object-fit: cover; }
 
 /* ─── ERROR ──────────────────────────────────────────────────────────── */
 .error-box {
-  background: rgba(220,38,38,0.05);
+  background: linear-gradient(135deg, rgba(220,38,38,0.06) 0%, rgba(220,38,38,0.03) 100%);
   border: 1px solid rgba(220,38,38,0.18);
   border-radius: var(--r-lg);
   padding: 20px;
@@ -892,6 +953,7 @@ video#result {
   max-width: 340px;
   text-align: center;
   font-family: var(--sans);
+  backdrop-filter: blur(12px);
 }
 
 /* ─── TOAST ──────────────────────────────────────────────────────────── */
@@ -900,7 +962,7 @@ video#result {
   bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
-  background: var(--s0);
+  background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,248,245,0.92) 100%);
   border: 1px solid var(--line-hi);
   border-radius: var(--r-md);
   padding: 8px 16px;
@@ -911,8 +973,10 @@ video#result {
   transition: opacity 0.25s;
   pointer-events: none;
   white-space: nowrap;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.10);
   font-family: var(--sans);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }
 
 #toast.show { opacity: 1; }
@@ -921,14 +985,310 @@ video#result {
 @keyframes blobBreath { 0%,100%{transform:scaleY(1) scaleX(1)} 50%{transform:scaleY(1.04) scaleX(0.97)} }
 @keyframes eyeBlink { 0%,90%,100%{transform:scaleY(1)} 95%{transform:scaleY(0.08)} }
 @keyframes armDrift { 0%,100%{transform:rotate(0deg)} 40%{transform:rotate(10deg)} 70%{transform:rotate(-7deg)} }
+
+/* ─── LOCK SCREEN ────────────────────────────────────────────────────── */
+#lock-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: #0a0a0a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 28px;
+}
+#lock-screen .lock-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  opacity: 0.9;
+}
+#lock-screen .lock-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  color: rgba(255,255,255,0.35);
+  text-transform: uppercase;
+  line-height: 1.3;
+}
+#lock-screen .lock-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+  padding: 28px 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 280px;
+  backdrop-filter: blur(20px);
+}
+#lock-screen .lock-title {
+  font-family: var(--serif);
+  font-size: 18px;
+  color: rgba(255,255,255,0.85);
+  letter-spacing: 0.01em;
+}
+#lock-screen .lock-sub {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: rgba(255,255,255,0.3);
+  letter-spacing: 0.08em;
+  text-align: center;
+}
+#lock-pw {
+  width: 100%;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 8px;
+  padding: 11px 14px;
+  color: #ffffff;
+  font-family: var(--mono);
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  outline: none;
+  text-align: center;
+  transition: border-color 0.15s;
+  box-sizing: border-box;
+}
+#lock-pw:focus { border-color: var(--accent); }
+#lock-pw.shake {
+  animation: lockShake 0.35s ease;
+  border-color: rgba(220,38,38,0.6);
+}
+#lock-submit {
+  width: 100%;
+  height: 44px;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hi) 100%);
+  border: none;
+  border-radius: 8px;
+  color: #000000;
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+#lock-submit:hover { opacity: 0.88; }
+#lock-err {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: rgba(220,38,38,0.8);
+  letter-spacing: 0.06em;
+  min-height: 12px;
+  text-align: center;
+}
+@keyframes lockShake {
+  0%,100%{transform:translateX(0)}
+  20%{transform:translateX(-6px)}
+  40%{transform:translateX(6px)}
+  60%{transform:translateX(-4px)}
+  80%{transform:translateX(4px)}
+}
+
+/* ─── SETTINGS MODAL ─────────────────────────────────────────────────── */
+#settings-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 88888;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(6px);
+  align-items: center;
+  justify-content: center;
+}
+#settings-modal.open { display: flex; }
+.settings-card {
+  background: linear-gradient(160deg, #ffffff 0%, #f5f5f2 100%);
+  border: 1px solid var(--line-hi);
+  border-radius: 16px;
+  padding: 28px 32px;
+  width: 340px;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.18);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.settings-title {
+  font-family: var(--serif);
+  font-size: 20px;
+  color: var(--text);
+  letter-spacing: 0.01em;
+}
+.settings-sub {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--text-3);
+  letter-spacing: 0.06em;
+  margin-top: -8px;
+}
+.settings-field { display: flex; flex-direction: column; gap: 5px; }
+.settings-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--text-3);
+  text-transform: uppercase;
+}
+.settings-input {
+  width: 100%;
+  background: var(--s1);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text);
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s;
+}
+.settings-input:focus { border-color: rgba(170,255,0,0.5); }
+.settings-actions { display: flex; gap: 8px; margin-top: 4px; }
+.settings-save {
+  flex: 1;
+  height: 40px;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hi) 100%);
+  border: none;
+  border-radius: 8px;
+  color: #000;
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.settings-cancel {
+  height: 40px;
+  padding: 0 16px;
+  background: var(--s2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text-2);
+  font-family: var(--sans);
+  font-size: 11px;
+  cursor: pointer;
+}
+.gear-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--s1);
+  border: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-3);
+  font-size: 14px;
+  transition: color 0.15s, border-color 0.15s;
+}
+.gear-btn:hover { color: var(--accent); border-color: rgba(170,255,0,0.4); }
+.test-badge {
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: 0.06em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+.test-badge.ok  { background: rgba(170,255,0,0.15); color: #447700; border: 1px solid rgba(170,255,0,0.35); }
+.test-badge.err { background: rgba(220,38,38,0.10); color: #dc2626; border: 1px solid rgba(220,38,38,0.25); }
+.test-badge.checking { background: var(--s2); color: var(--text-3); border: 1px solid var(--line); }
+
+.keys-missing-banner {
+  display: none;
+  background: rgba(220,38,38,0.08);
+  border: 1px solid rgba(220,38,38,0.2);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-family: var(--mono);
+  font-size: 9px;
+  color: #dc2626;
+  letter-spacing: 0.05em;
+  text-align: center;
+  cursor: pointer;
+}
 </style>
 </head>
 <body>
 
+<!-- ─── LOCK SCREEN ─────────────────────────────────────────────────────── -->
+<div id="lock-screen">
+  <div class="lock-logo">
+    <img src="assets/IAMS-Logo.png" height="36" style="filter:brightness(0) invert(1);opacity:0.7">
+    <div style="width:1px;height:16px;background:rgba(255,255,255,0.12);margin:0 4px;"></div>
+    <div class="lock-label">The<br>Insiders<br>Factory</div>
+  </div>
+  <div class="lock-card">
+    <div class="lock-title">Access required</div>
+    <div class="lock-sub">Enter your team passphrase to continue</div>
+    <input id="lock-pw" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')lockSubmit()"/>
+    <button id="lock-submit" onclick="lockSubmit()">
+      <i class="ph ph-lock-key-open"></i> Unlock
+    </button>
+    <div id="lock-err"></div>
+  </div>
+</div>
+
+<!-- ─── SETTINGS MODAL ───────────────────────────────────────────────────── -->
+<div id="settings-modal">
+  <div class="settings-card">
+    <div class="settings-title">API Keys</div>
+    <div class="settings-sub">Stored locally in your browser — never sent to any server.</div>
+    <div class="settings-field">
+      <div class="settings-label" style="display:flex;align-items:center;justify-content:space-between">
+        Anthropic (Claude) <span id="t-claude" class="test-badge"></span>
+      </div>
+      <input class="settings-input" id="s-claude" type="password" placeholder="sk-ant-api03-…"/>
+    </div>
+    <div class="settings-field">
+      <div class="settings-label" style="display:flex;align-items:center;justify-content:space-between">
+        ElevenLabs <span id="t-eleven" class="test-badge"></span>
+      </div>
+      <input class="settings-input" id="s-eleven" type="password" placeholder="sk_…"/>
+    </div>
+    <div class="settings-field">
+      <div class="settings-label">ElevenLabs Voice ID</div>
+      <input class="settings-input" id="s-voice" type="text" placeholder="qZkuFcRFTdS6vkYu5ABx"/>
+    </div>
+    <div class="settings-field">
+      <div class="settings-label" style="display:flex;align-items:center;justify-content:space-between">
+        Veo 3 (direct via Google Gemini) <span id="t-veo" class="test-badge"></span>
+      </div>
+      <div style="font-size:10px;color:var(--text-3);line-height:1.5;font-family:var(--mono);background:rgba(0,0,0,0.15);border-radius:6px;padding:8px 10px;border:1px solid rgba(255,255,255,0.08)">
+        Set <strong style="color:var(--text-2)">GEMINI_API_KEY</strong> and <strong style="color:var(--text-2)">BLOB_READ_WRITE_TOKEN</strong> in your Vercel project environment variables — these live on the server, not here.
+      </div>
+    </div>
+    <div class="settings-actions">
+      <button class="settings-cancel" onclick="closeSettings()">Cancel</button>
+      <button class="settings-cancel" onclick="testKeys()" id="test-btn" style="display:flex;align-items:center;gap:5px">
+        <i class="ph ph-plugs-connected"></i> Test
+      </button>
+      <button class="settings-save" onclick="saveSettings()">
+        <i class="ph ph-floppy-disk"></i> Save
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- ─── HEADER ──────────────────────────────────────────────────────────── -->
 <header>
   <div class="logo-mark">
-    <img src="assets/IAMS-Logo.png" height="28" style="display:block;">
+    <img src="assets/IAMS-Logo.png" height="56" style="display:block;">
     <div style="width:1px;height:20px;background:rgba(0,0,0,0.10);margin:0 2px;"></div>
     <div style="font-family:var(--mono);font-size:9px;letter-spacing:0.12em;color:var(--text-3);text-transform:uppercase;line-height:1.3">The<br>Insiders<br>Factory</div>
   </div>
@@ -938,8 +1298,12 @@ video#result {
       <div class="status-dot"></div>
       <span>Ready</span>
     </div>
+    <button class="gear-btn" onclick="openSettings()" title="API Keys"><i class="ph ph-gear"></i></button>
   </div>
 </header>
+<div class="keys-missing-banner" id="keys-banner" onclick="openSettings()">
+  <i class="ph ph-warning"></i> API keys not configured — click to set up
+</div>
 
 <div id="app">
 
@@ -951,22 +1315,16 @@ video#result {
       <div class="sect" style="margin-top:0">
         <span class="sect-label">Character</span>
         <div class="sect-line"></div>
-        <div class="info-btn">i<div class="tooltip">Select your character. Additional cast members are in production — drop adam&eveTBWA a note if you want one prioritised.</div></div>
+        <div class="info-btn"><i class="ph ph-info"></i><div class="tooltip">Select your character. Additional cast members are in production — drop adam&eveTBWA a note if you want one prioritised.</div></div>
       </div>
 
       <div class="char-select-wrap" id="charWrap">
         <div class="char-select-trigger" onclick="toggleCharDropdown()">
-          <div class="char-preview">
-            <video autoplay loop muted playsinline src="assets/gut-preview.mp4"></video>
-          </div>
           <div class="char-info">
             <div class="char-name">Gut Bacteria</div>
             <div class="char-sub">IAMS Proactive Health · Active</div>
-            <div class="char-tags">
-              <span class="tag hi">Voice + Lip Sync</span>
-            </div>
           </div>
-          <div class="chevron">▾</div>
+          <div class="chevron"><i class="ph ph-caret-down"></i></div>
         </div>
         <div class="char-dropdown" id="charDropdown">
           <div class="char-option active" onclick="selectChar(this)">
@@ -996,38 +1354,51 @@ video#result {
         </div>
       </div>
 
-      <!-- Voice & Dialogue -->
+      <!-- Direction -->
       <div class="sect">
-        <span class="sect-label">Voice & Dialogue</span>
+        <span class="sect-label">Direction</span>
         <div class="sect-line"></div>
-        <div class="info-btn">i<div class="tooltip">Voice is generated from a cloned vocal reference. Lip-sync drives the character's mouth to match every word, frame-accurate.</div></div>
+        <div class="info-btn"><i class="ph ph-info"></i><div class="tooltip">Choose a mood preset, or write your own direction below. They're mutually exclusive — pick one.</div></div>
+      </div>
+
+      <div class="mood-grid">
+        <div class="mood-tile" data-mood="hype"  style="--mc:var(--hype)"  onclick="selectMood(this)"><span class="mood-emoji"><i class="ph ph-lightning"></i></span><div class="mood-label">HYPE</div><div class="mood-sub">Big energy</div></div>
+        <div class="mood-tile" data-mood="win"   style="--mc:var(--win)"   onclick="selectMood(this)"><span class="mood-emoji"><i class="ph ph-trophy"></i></span><div class="mood-label">WIN</div><div class="mood-sub">Flex &amp; glow</div></div>
+        <div class="mood-tile" data-mood="wave"  style="--mc:var(--wave)"  onclick="selectMood(this)"><span class="mood-emoji"><i class="ph ph-hand-waving"></i></span><div class="mood-label">WAVE</div><div class="mood-sub">Warm hello</div></div>
+        <div class="mood-tile" data-mood="shock" style="--mc:var(--shock)" onclick="selectMood(this)"><span class="mood-emoji"><i class="ph ph-smiley-nervous"></i></span><div class="mood-label">SHOCK</div><div class="mood-sub">Big reaction</div></div>
+        <div class="mood-tile" data-mood="dance" style="--mc:var(--dance)" onclick="selectMood(this)"><span class="mood-emoji"><i class="ph ph-music-notes-simple"></i></span><div class="mood-label">DANCE</div><div class="mood-sub">Full wiggle</div></div>
+        <div class="mood-tile" data-mood="love"  style="--mc:var(--love)"  onclick="selectMood(this)"><span class="mood-emoji"><i class="ph ph-heart"></i></span><div class="mood-label">LOVE</div><div class="mood-sub">Heart warmth</div></div>
+      </div>
+
+      <div class="sect" style="margin-top:10px">
+        <span class="sect-label">Custom</span>
+        <div class="sect-line"></div>
+      </div>
+
+      <div class="direction-wrap">
+        <textarea id="direction" placeholder="Or describe your own direction — scene, action, camera move…"></textarea>
+      </div>
+
+      <!-- Voice -->
+      <div class="sect">
+        <span class="sect-label">Voice</span>
+        <div class="sect-line"></div>
+        <div class="info-btn"><i class="ph ph-info"></i><div class="tooltip">Voice is generated from a cloned vocal reference. Lip-sync drives the character's mouth to match every word, frame-accurate.</div></div>
       </div>
 
       <div class="phrase-panel">
         <div class="phrase-tabs">
-          <button class="ptab active" data-cat="reactions" onclick="switchCat(this)">Reactions</button>
-          <button class="ptab" data-cat="product" onclick="switchCat(this)">Product</button>
+          <button class="ptab active" data-cat="branded" onclick="switchCat(this)">Branded</button>
           <button class="ptab" data-cat="custom" onclick="switchCat(this)">Custom</button>
         </div>
 
-        <!-- Reactions -->
-        <div class="phrase-list" id="phrases-reactions">
-          <div class="phrase-row" onclick="selectPhrase(this)" data-text="Fermentation complete."><div class="phrase-sel"></div><span class="phrase-copy">"Fermentation complete."</span><span class="phrase-dur">~1s</span></div>
-          <div class="phrase-row" onclick="selectPhrase(this)" data-text="My cultures are thriving."><div class="phrase-sel"></div><span class="phrase-copy">"My cultures are thriving."</span><span class="phrase-dur">~2s</span></div>
-          <div class="phrase-row" onclick="selectPhrase(this)" data-text="I have literally been waiting inside you for this."><div class="phrase-sel"></div><span class="phrase-copy">"I have literally been waiting inside you for this."</span><span class="phrase-dur">~3s</span></div>
-          <div class="phrase-row" onclick="selectPhrase(this)" data-text="No antibiotics can stop this feeling."><div class="phrase-sel"></div><span class="phrase-copy">"No antibiotics can stop this feeling."</span><span class="phrase-dur">~2s</span></div>
-          <div class="phrase-row" onclick="selectPhrase(this)" data-text="Billions of us. One reaction."><div class="phrase-sel"></div><span class="phrase-copy">"Billions of us. One reaction."</span><span class="phrase-dur">~2s</span></div>
-          <div class="phrase-row" onclick="selectPhrase(this)" data-text="This is what we were colonised for."><div class="phrase-sel"></div><span class="phrase-copy">"This is what we were colonised for."</span><span class="phrase-dur">~2s</span></div>
-        </div>
-
-        <!-- Product -->
-        <div class="phrase-list" id="phrases-product" style="display:none">
-          <div class="phrase-row" onclick="selectPhrase(this)" data-text="We live here. Make it nice."><div class="phrase-sel"></div><span class="phrase-copy">"We live here. Make it nice."</span><span class="phrase-dur">~2s</span></div>
-          <div class="phrase-row" onclick="selectPhrase(this)" data-text="Feed us IAMS. We do the rest."><div class="phrase-sel"></div><span class="phrase-copy">"Feed us IAMS. We do the rest."</span><span class="phrase-dur">~2s</span></div>
-          <div class="phrase-row" onclick="selectPhrase(this)" data-text="From the inside out. Literally."><div class="phrase-sel"></div><span class="phrase-copy">"From the inside out. Literally."</span><span class="phrase-dur">~2s</span></div>
-          <div class="phrase-row" onclick="selectPhrase(this)" data-text="You are what your dog eats. So are we."><div class="phrase-sel"></div><span class="phrase-copy">"You are what your dog eats. So are we."</span><span class="phrase-dur">~3s</span></div>
-          <div class="phrase-row" onclick="selectPhrase(this)" data-text="The good guys. Right here."><div class="phrase-sel"></div><span class="phrase-copy">"The good guys. Right here."</span><span class="phrase-dur">~1s</span></div>
-          <div class="phrase-row" onclick="selectPhrase(this)" data-text="Good gut. Happy dog. That's just science."><div class="phrase-sel"></div><span class="phrase-copy">"Good gut. Happy dog. That's just science."</span><span class="phrase-dur">~3s</span></div>
+        <!-- Branded -->
+        <div class="phrase-list" id="phrases-branded">
+          <div class="phrase-row" onclick="selectPhrase(this)" data-text="Don't make us beg. Feed us IAMS."><div class="phrase-sel"></div><span class="phrase-copy">"Don't make us beg. Feed us IAMS."</span><span class="phrase-dur">~2s</span></div>
+          <div class="phrase-row" onclick="selectPhrase(this)" data-text="The gut is where health begins. You're welcome."><div class="phrase-sel"></div><span class="phrase-copy">"The gut is where health begins. You're welcome."</span><span class="phrase-dur">~2s</span></div>
+          <div class="phrase-row" onclick="selectPhrase(this)" data-text="IAMS feeds us. We handle everything else."><div class="phrase-sel"></div><span class="phrase-copy">"IAMS feeds us. We handle everything else."</span><span class="phrase-dur">~2s</span></div>
+          <div class="phrase-row" onclick="selectPhrase(this)" data-text="Healthy gut. Shiny coat. Boundless energy. That's us."><div class="phrase-sel"></div><span class="phrase-copy">"Healthy gut. Shiny coat. Boundless energy. That's us."</span><span class="phrase-dur">~3s</span></div>
+          <div class="phrase-row" onclick="selectPhrase(this)" data-text="You can't see us. But your dog can feel us."><div class="phrase-sel"></div><span class="phrase-copy">"You can't see us. But your dog can feel us."</span><span class="phrase-dur">~2s</span></div>
         </div>
 
         <!-- Custom -->
@@ -1046,48 +1417,17 @@ video#result {
         </div>
       </div>
 
-      <!-- Mood -->
-      <div class="sect">
-        <span class="sect-label">Mood</span>
-        <div class="sect-line"></div>
-        <div class="info-btn">i<div class="tooltip">Sets the character's body language, energy, and motion arc. Gets baked into the Kling video prompt by Claude.</div></div>
-      </div>
-
-      <div class="mood-grid">
-        <div class="mood-tile" data-mood="hype"  style="--mc:var(--hype)"  onclick="selectMood(this)"><span class="mood-emoji">⚡</span><div class="mood-label">HYPE</div><div class="mood-sub">Big energy</div></div>
-        <div class="mood-tile" data-mood="win"   style="--mc:var(--win)"   onclick="selectMood(this)"><span class="mood-emoji">🏆</span><div class="mood-label">WIN</div><div class="mood-sub">Flex &amp; glow</div></div>
-        <div class="mood-tile" data-mood="wave"  style="--mc:var(--wave)"  onclick="selectMood(this)"><span class="mood-emoji">👋</span><div class="mood-label">WAVE</div><div class="mood-sub">Warm hello</div></div>
-        <div class="mood-tile" data-mood="shock" style="--mc:var(--shock)" onclick="selectMood(this)"><span class="mood-emoji">😱</span><div class="mood-label">SHOCK</div><div class="mood-sub">Big reaction</div></div>
-        <div class="mood-tile" data-mood="dance" style="--mc:var(--dance)" onclick="selectMood(this)"><span class="mood-emoji">🕺</span><div class="mood-label">DANCE</div><div class="mood-sub">Full wiggle</div></div>
-        <div class="mood-tile" data-mood="love"  style="--mc:var(--love)"  onclick="selectMood(this)"><span class="mood-emoji">❤️</span><div class="mood-label">LOVE</div><div class="mood-sub">Heart warmth</div></div>
-      </div>
-
-      <!-- Direction -->
-      <div class="sect">
-        <span class="sect-label">Direction</span>
-        <div class="sect-line"></div>
-        <div class="info-btn">i<div class="tooltip">Optional freeform notes passed to Claude when writing the Kling video prompt. Set the scene, add context, steer the action.</div></div>
-      </div>
-
-      <div class="direction-wrap">
-        <textarea id="direction" placeholder="e.g. Character reacts to something delicious off-screen. Slow zoom in."></textarea>
-      </div>
-
       <!-- Format -->
       <div class="sect">
         <span class="sect-label">Format</span>
         <div class="sect-line"></div>
-        <div class="info-btn">i<div class="tooltip">Aspect ratio for the final rendered clip. 9:16 for Stories and Reels. 1:1 for feed posts. 16:9 for YouTube and display.</div></div>
+        <div class="info-btn"><i class="ph ph-info"></i><div class="tooltip">Aspect ratio for the final rendered clip. 9:16 for Stories and Reels. 1:1 for feed posts. 16:9 for YouTube and display.</div></div>
       </div>
 
-      <div class="format-grid">
+      <div class="format-grid" style="grid-template-columns:repeat(2,1fr)">
         <div class="fmt-btn active" data-ar="9:16" onclick="selectFormat(this)">
           <div class="fmt-ratio"><div class="fmt-rect" style="width:14px;height:25px;border-radius:2px"></div></div>
           <div class="fmt-label">9:16</div>
-        </div>
-        <div class="fmt-btn" data-ar="1:1" onclick="selectFormat(this)">
-          <div class="fmt-ratio"><div class="fmt-rect" style="width:22px;height:22px;border-radius:2px"></div></div>
-          <div class="fmt-label">1:1</div>
         </div>
         <div class="fmt-btn" data-ar="16:9" onclick="selectFormat(this)">
           <div class="fmt-ratio"><div class="fmt-rect" style="width:31px;height:17px;border-radius:2px"></div></div>
@@ -1095,23 +1435,48 @@ video#result {
         </div>
       </div>
 
-    </div><!-- /scroll -->
+      <!-- Background -->
+      <div class="sect">
+        <span class="sect-label">Background</span>
+        <div class="sect-line"></div>
+        <div class="info-btn"><i class="ph ph-info"></i><div class="tooltip">Choose the environment the character appears in. Green Screen lets you composite in your editing app.</div></div>
+      </div>
 
-    <div id="left-footer">
-      <button id="go-btn" onclick="generate()" disabled>
-        <span id="go-label">Generate Clip</span>
-      </button>
-    </div>
+      <div class="bg-grid">
+        <div class="bg-btn active" data-bg="studio" onclick="selectBg(this)">
+          <div class="bg-swatch" style="background:linear-gradient(135deg,#e8e8eb,#d5d5d8)"></div>
+          <div class="bg-label">Studio</div>
+        </div>
+        <div class="bg-btn" data-bg="greenscreen" onclick="selectBg(this)">
+          <div class="bg-swatch" style="background:#00B400"></div>
+          <div class="bg-label">Green<br>Screen</div>
+        </div>
+        <div class="bg-btn" data-bg="micro" onclick="selectBg(this)">
+          <div class="bg-swatch" style="background:linear-gradient(135deg,#8B4513,#C4780A,#6B3311)"></div>
+          <div class="bg-label">Micro<br>World</div>
+        </div>
+        <div class="bg-btn" data-bg="3d" onclick="selectBg(this)">
+          <div class="bg-swatch" style="background:linear-gradient(135deg,#1a3a5a,#0d6b8a,#e84040,#f0a820)"></div>
+          <div class="bg-label">3D<br>World</div>
+        </div>
+      </div>
+
+    </div><!-- /scroll -->
   </div>
 
   <!-- ─── RIGHT ───────────────────────────────────────────────────────── -->
   <div id="right">
 
     <div id="empty">
-      <video autoplay loop muted playsinline src="assets/gut-preview.mp4" style="height:300px;width:auto;border-radius:12px;"></video>
-      <div class="empty-title">Ready to generate</div>
-      <div class="empty-sub">Pick a mood, choose a line, hit generate.</div>
-      <div style="margin-top:4px"><span class="kbd">⌘ Return</span> <span style="color:var(--text-3);font-family:var(--sans);font-size:10px">to generate</span></div>
+      <video autoplay loop muted playsinline src="assets/gut-preview.mp4" style="height:400px;width:auto;border-radius:16px;flex-shrink:0;"></video>
+      <div class="empty-cta">
+        <div class="empty-title">Ready to generate</div>
+        <div class="empty-sub">Choose a direction and a voice line, then generate.</div>
+        <button id="go-btn" onclick="generate()" disabled>
+          <span id="go-label">Generate Clip</span>
+        </button>
+        <div><span class="kbd">⌘ Return</span> <span style="color:rgba(255,255,255,0.35);font-family:var(--sans);font-size:10px">to generate</span></div>
+      </div>
     </div>
 
     <div id="loading">
@@ -1119,22 +1484,22 @@ video#result {
       <div class="loading-sub" id="loading-sub">Starting pipeline</div>
       <div class="pipeline">
         <div class="pipe-step pending" id="step-tts">
-          <span class="step-icon">🎙</span>
+          <span class="step-icon"><i class="ph ph-microphone"></i></span>
           <span class="step-label">Generate voice</span>
           <span class="step-status" id="step-tts-s">waiting</span>
         </div>
         <div class="pipe-step pending" id="step-host">
-          <span class="step-icon">☁️</span>
+          <span class="step-icon"><i class="ph ph-cloud-arrow-up"></i></span>
           <span class="step-label">Upload audio</span>
           <span class="step-status" id="step-host-s">waiting</span>
         </div>
         <div class="pipe-step pending" id="step-video">
-          <span class="step-icon">🎬</span>
+          <span class="step-icon"><i class="ph ph-film-strip"></i></span>
           <span class="step-label">Generate video</span>
           <span class="step-status" id="step-video-s">waiting</span>
         </div>
         <div class="pipe-step pending" id="step-sync">
-          <span class="step-icon">👄</span>
+          <span class="step-icon"><i class="ph ph-waveform"></i></span>
           <span class="step-label">Lip-sync</span>
           <span class="step-status" id="step-sync-s">waiting</span>
         </div>
@@ -1143,7 +1508,7 @@ video#result {
 
     <div id="output">
       <div class="video-wrap">
-        <video id="result" autoplay loop muted playsinline controls></video>
+        <video id="result" autoplay loop muted playsinline disablepictureinpicture disableremoteplayback></video>
       </div>
       <div class="output-meta">
         <span class="meta-chip c" id="meta-mood">—</span>
@@ -1151,14 +1516,11 @@ video#result {
         <span class="meta-chip" id="meta-phrase">No voice</span>
       </div>
       <div class="output-actions">
-        <button class="out-btn ghost" onclick="previewAudio()">▶ Voice preview</button>
-        <button class="out-btn ghost" onclick="generate()">Regenerate</button>
-        <button class="out-btn primary" id="dl-btn">↓ Download</button>
+        <button class="out-btn ghost" id="voice-btn" onclick="previewAudio()"><i class="ph ph-microphone"></i> Replay voice</button>
+        <button class="out-btn ghost" onclick="generate()"><i class="ph ph-arrows-clockwise"></i> Regenerate</button>
+        <button class="out-btn primary" id="dl-btn"><i class="ph ph-download-simple"></i> Download</button>
       </div>
-      <div class="audio-preview" id="audio-preview" style="display:none">
-        <span class="audio-label">🎙 Voice</span>
-        <audio id="audio-player" controls></audio>
-      </div>
+      <audio id="audio-player" style="display:none"></audio>
     </div>
 
     <div id="history-strip"></div>
@@ -1168,35 +1530,174 @@ video#result {
 <div id="toast"></div>
 
 <script>
-// ─── HARDCODED CONFIG ─────────────────────────────────────────────────────────
-const CLAUDE_KEY  = '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';
-const ELEVEN_KEY  = 'sk_779bf6230a898d4c3828d53f88a1735a8ebc8fac2d28194b';
-const KLING_AK    = 'AKD3H4eKfMHfpkmnadytthECbmNADGT4';
-const KLING_SK    = 'dKrKFDGEKEA9M3BDgeYNM9matELMet8T';
-const VOICE_ID    = 'qZkuFcRFTdS6vkYu5ABx';
-const PROXY       = 'https://kling-proxy.paulknott.workers.dev';
+// ─── LOCK SCREEN ──────────────────────────────────────────────────────────────
+const PASS = 'insiders';
+(function(){
+  if(sessionStorage.getItem('unlocked')==='1'){
+    document.getElementById('lock-screen').style.display='none';
+  }
+})();
+window.addEventListener('DOMContentLoaded', ()=>{ if(sessionStorage.getItem('unlocked')==='1') checkKeysBanner(); });
+function lockSubmit(){
+  const pw=document.getElementById('lock-pw').value;
+  if(pw===PASS){
+    sessionStorage.setItem('unlocked','1');
+    const el=document.getElementById('lock-screen');
+    el.style.transition='opacity 0.4s';el.style.opacity='0';
+    setTimeout(()=>{ el.style.display='none'; checkKeysBanner(); },400);
+  } else {
+    const inp=document.getElementById('lock-pw');
+    const err=document.getElementById('lock-err');
+    inp.classList.remove('shake');
+    void inp.offsetWidth;
+    inp.classList.add('shake');
+    inp.value='';
+    err.textContent='Incorrect passphrase';
+    setTimeout(()=>{ err.textContent=''; inp.classList.remove('shake'); },2000);
+  }
+}
+
+// ─── CONFIG (from localStorage — set via gear icon in header) ─────────────────
+function cfg(k) { return localStorage.getItem('iams_'+k) || ''; }
+function getCLAUDE_KEY()  { return cfg('claude_key'); }
+function getELEVEN_KEY()  { return cfg('eleven_key'); }
+function getVOICE_ID()    { return cfg('voice_id'); }
+function keysConfigured() {
+  return cfg('claude_key') && cfg('eleven_key') && cfg('voice_id');
+}
+
+// ─── SETTINGS UI ──────────────────────────────────────────────────────────────
+function openSettings() {
+  document.getElementById('s-claude').value   = cfg('claude_key');
+  document.getElementById('s-eleven').value   = cfg('eleven_key');
+  document.getElementById('s-voice').value    = cfg('voice_id');
+  document.getElementById('settings-modal').classList.add('open');
+}
+function closeSettings() {
+  document.getElementById('settings-modal').classList.remove('open');
+}
+function saveSettings() {
+  localStorage.setItem('iams_claude_key', document.getElementById('s-claude').value.trim());
+  localStorage.setItem('iams_eleven_key', document.getElementById('s-eleven').value.trim());
+  localStorage.setItem('iams_voice_id',   document.getElementById('s-voice').value.trim());
+  closeSettings();
+  checkKeysBanner();
+}
+function checkKeysBanner() {
+  const banner = document.getElementById('keys-banner');
+  if (banner) banner.style.display = keysConfigured() ? 'none' : 'block';
+}
+document.getElementById('settings-modal').addEventListener('click', function(e){
+  if (e.target === this) closeSettings();
+});
+
+async function testKeys() {
+  const btn = document.getElementById('test-btn');
+  btn.disabled = true;
+
+  function badge(id, state, text) {
+    const el = document.getElementById(id);
+    el.className = 'test-badge ' + state;
+    el.textContent = text;
+  }
+
+  const claudeKey = document.getElementById('s-claude').value.trim();
+  const elevenKey = document.getElementById('s-eleven').value.trim();
+
+  badge('t-claude','checking','testing…');
+  badge('t-eleven','checking','testing…');
+  badge('t-veo',   'checking','testing…');
+
+  // Claude
+  try {
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':claudeKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body: JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:5,messages:[{role:'user',content:'hi'}]})
+    });
+    badge('t-claude', r.ok ? 'ok' : 'err', r.ok ? '✓ valid' : `✗ ${r.status}`);
+  } catch(e) { badge('t-claude','err','✗ network'); }
+
+  // ElevenLabs — POST to the TTS endpoint with an empty body. This checks the
+  // exact permission generation needs, without spending credits: a key WITH
+  // text_to_speech access gets past auth and fails body validation (422); a key
+  // without it is rejected at auth (401 missing_permissions); an unknown key
+  // returns 401 invalid_api_key.
+  try {
+    const voiceId = document.getElementById('s-voice').value.trim() || '21m00Tcm4TlvDq8ikWAM';
+    const r = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json','xi-api-key': elevenKey},
+      body: JSON.stringify({})
+    });
+    if (r.status === 422 || r.ok) {
+      // Passed auth + permission check (422 = empty body rejected after auth)
+      badge('t-eleven','ok','✓ valid');
+    } else if (r.status === 404) {
+      // Auth + permission OK, but the voice ID isn't in this account
+      badge('t-eleven','err','✗ voice ID not found');
+    } else if (r.status === 401) {
+      const body = await r.json().catch(()=>({}));
+      const status = body?.detail?.status || '';
+      if (status === 'missing_permissions' || /permission/i.test(JSON.stringify(body))) {
+        badge('t-eleven','err','✗ enable TTS access');
+      } else {
+        badge('t-eleven','err','✗ invalid key');
+      }
+    } else {
+      badge('t-eleven','err',`✗ ${r.status}`);
+    }
+  } catch(e) { badge('t-eleven','err','✗ network'); }
+
+  // Veo — ping the Vercel function with an empty body to check env config
+  try {
+    const r = await fetch('/api/generate', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({}) });
+    const d = await r.json().catch(() => ({}));
+    if (r.status === 500 && d.error && d.error.includes('GEMINI_API_KEY')) {
+      badge('t-veo','err','✗ set GEMINI_API_KEY in Vercel');
+    } else if (r.status === 400) {
+      // Reached handler and complained about missing prompt → env keys are present
+      badge('t-veo','ok','✓ server ready');
+    } else if (r.status === 500) {
+      badge('t-veo','err',`✗ ${d.error||'server error'}`);
+    } else {
+      badge('t-veo','ok','✓ reachable');
+    }
+  } catch(e) { badge('t-veo','err','✗ /api/generate unreachable (deploy to Vercel)'); }
+
+  btn.disabled = false;
+}
 
 // ─── CHARACTER BIBLE ──────────────────────────────────────────────────────────
-const BIBLE = `IAMS Gut Bacteria character:
-- Asymmetric amoeba blob, ~1.2:1 width:height, soft organic edges
-- 2-4 tapered cytoplasm pseudopod arms from mid-body, can retract
-- Two large white sclera circles with small round pupils — Pixar-quality, primary acting instrument
-- Translucent purple jelly, soft subsurface scattering, single specular highlight upper-left
-- Always bouncy, breathing oscillation even at rest
-- NEVER add clothing, hats, fingers, or unlisted features`;
+const BIBLE = `IAMS "Gut Bacteria" hero character — match the reference image EXACTLY:
+- A small chibi/baby humanoid: an oversized rounded dome-shaped head on a short stubby body with little arms and legs
+- Made of CLEAR translucent iridescent glass/resin — pearlescent with a soft rainbow sheen, subsurface scattering, glossy wet-looking surface and a single soft specular highlight
+- Inside the transparent head and body: a dense tangle of fine GOLDEN-AMBER coral-like filaments / glowing golden tendrils (like delicate gold noodles or brain-coral), most concentrated in the head
+- Two small round eyes set low on the face with subtle teal/dark pupils — expressive but understated, NOT large white cartoon sclera
+- A tiny mouth that moves subtly when talking
+- Gentle bounce and breathing oscillation even at rest; soft neutral studio background and lighting
+- NEVER make it purple, opaque, or a featureless blob; NEVER add clothing, hats, or extra features. It is clear glass with a glowing gold interior.`;
 
 const MOOD_BRIEFS = {
-  hype:  'HIGH ENERGY: Rapid full-body bouncing, arms pumping overhead, eyes wide and sparkling, mouth open wide in a joyful shout. Mouth must stay open and expressive throughout for lip-sync.',
-  win:   'CELEBRATION: Body inflates proudly, one arm curls into a flex, eyes crinkle into a smile. Mouth open in a triumphant grin ready for lip-sync.',
-  wave:  'WARM GREETING: Arm waves gently, body tilts toward camera, eyes soft. Mouth in a friendly open talking shape for lip-sync.',
-  shock: 'SURPRISE: Eyes shoot to maximum size, body squashes then springs, arms fly wide, mouth drops fully open — holds for lip-sync.',
-  dance: 'RHYTHMIC JOY: Body sways and wiggles, arms drift freely, eyes blink happily. Mouth open in a wide joyful smile for lip-sync.',
-  love:  'WARMTH: Body pulses gently, arms wrap inward, eyes squint warmly. Mouth in a soft open loving expression for lip-sync.'
+  hype:  'HIGH ENERGY: Rapid full-body bouncing, arms pumping overhead, eyes wide and sparkling, a joyful animated expression with lively natural mouth movement.',
+  win:   'CELEBRATION: Body inflates proudly, one arm curls into a flex, eyes crinkle into a smile, mouth in a triumphant grin with gentle talking movement.',
+  wave:  'WARM GREETING: Arm waves gently, body tilts toward camera, eyes soft, mouth in a friendly expression with subtle natural talking movement.',
+  shock: 'SURPRISE: Eyes shoot to maximum size, body squashes then springs, arms fly wide, mouth animated in an expressive surprised shape.',
+  dance: 'RHYTHMIC JOY: Body sways and wiggles, arms drift freely, eyes blink happily, mouth in a wide joyful smile with lively movement.',
+  love:  'WARMTH: Body pulses gently, arms wrap inward, eyes squint warmly, mouth in a soft loving expression with gentle movement.'
 };
 
 // ─── STATE ────────────────────────────────────────────────────────────────────
-let mood = null, format = '9:16', activeCat = 'reactions', selectedPhrase = null;
+let mood = null, format = '9:16', background = 'studio', activeCat = 'branded', selectedPhrase = null;
 let busy = false, history = [], lastAudioBlob = null;
+
+// Background canvas fill colours — used when compositing hero ref onto starting frame
+const BG_FILLS = {
+  studio:      '#e9e9ec',
+  greenscreen: '#00B400',
+  micro:       '#6B3311',
+  '3d':        '#1a3a5a',
+};
 
 // ─── CHAR DROPDOWN ────────────────────────────────────────────────────────────
 function toggleCharDropdown() {
@@ -1227,7 +1728,7 @@ function switchCat(el) {
   document.querySelectorAll('.ptab').forEach(b => b.classList.remove('active'));
   el.classList.add('active');
   activeCat = el.dataset.cat;
-  ['reactions','product','custom'].forEach(c => {
+  ['branded','custom'].forEach(c => {
     const el2 = document.getElementById('phrases-' + c);
     if (el2) el2.style.display = c === activeCat ? '' : 'none';
   });
@@ -1244,13 +1745,31 @@ function selectPhrase(el) {
 }
 
 function selectMood(el) {
-  document.querySelectorAll('.mood-tile').forEach(t => t.classList.remove('active'));
-  el.classList.add('active'); mood = el.dataset.mood; tick();
+  const dir = document.getElementById('direction');
+  if (el.classList.contains('active')) {
+    el.classList.remove('active');
+    mood = null;
+    dir.disabled = false;
+  } else {
+    document.querySelectorAll('.mood-tile').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    mood = el.dataset.mood;
+    dir.value = '';
+    dir.disabled = true;
+  }
+  tick();
 }
 
 function selectFormat(el) {
   document.querySelectorAll('.fmt-btn').forEach(b => b.classList.remove('active'));
   el.classList.add('active'); format = el.dataset.ar;
+  REF_CACHE = {}; // bust cache when format changes
+}
+
+function selectBg(el) {
+  document.querySelectorAll('.bg-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active'); background = el.dataset.bg;
+  REF_CACHE = {}; // bust cache when background changes
 }
 
 function getPhrase() {
@@ -1258,7 +1777,23 @@ function getPhrase() {
   return selectedPhrase || '';
 }
 
-document.getElementById('direction').addEventListener('input', tick);
+document.getElementById('direction').addEventListener('input', function() {
+  if (this.value.trim()) {
+    document.querySelectorAll('.mood-tile').forEach(t => t.classList.remove('active'));
+    mood = null;
+  }
+  tick();
+});
+
+document.getElementById('direction').addEventListener('click', function() {
+  if (this.disabled) {
+    this.disabled = false;
+    document.querySelectorAll('.mood-tile').forEach(t => t.classList.remove('active'));
+    mood = null;
+    this.focus();
+    tick();
+  }
+});
 document.getElementById('custom-phrase').addEventListener('input', () => { selectedPhrase = null; tick(); });
 
 // ─── TICK ─────────────────────────────────────────────────────────────────────
@@ -1272,29 +1807,19 @@ function tick() {
 }
 
 // ─── JWT ──────────────────────────────────────────────────────────────────────
-function b64u(buf) { return btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
-async function makeJWT() {
-  const enc = new TextEncoder();
-  const h   = b64u(enc.encode(JSON.stringify({alg:'HS256',typ:'JWT'})));
-  const now = Math.floor(Date.now()/1000);
-  const p   = b64u(enc.encode(JSON.stringify({iss:KLING_AK,exp:now+1800,nbf:now-5})));
-  const key = await crypto.subtle.importKey('raw',enc.encode(KLING_SK),{name:'HMAC',hash:'SHA-256'},false,['sign']);
-  const sig = await crypto.subtle.sign('HMAC',key,enc.encode(`${h}.${p}`));
-  return `${h}.${p}.${b64u(sig)}`;
-}
 
 // ─── STEP 1: CLAUDE prompt ────────────────────────────────────────────────────
 async function buildPrompt(phraseText) {
   const moodCtx  = mood ? `MOOD: ${MOOD_BRIEFS[mood]}` : '';
   const dirCtx   = document.getElementById('direction').value.trim();
-  const voiceCtx = phraseText ? `Character speaks: "${phraseText}" — mouth must be open, facing camera, expressive throughout for lip-sync.` : '';
+  const voiceCtx = phraseText ? `The character is talking — give it subtle, natural mouth movement (gentle opening and closing as if speaking softly), facing camera, lively but not exaggerated.` : '';
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
-    headers: { 'Content-Type':'application/json','x-api-key':CLAUDE_KEY,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true' },
+    headers: { 'Content-Type':'application/json','x-api-key':getCLAUDE_KEY(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true' },
     body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514', max_tokens: 200,
+      model: 'claude-sonnet-4-6', max_tokens: 200,
       system: `You write Kling AI video prompts. Character:\n${BIBLE}\nReturn ONLY the prompt. No preamble. 60-90 words.`,
-      messages: [{ role:'user', content:`${moodCtx}\n${dirCtx ? 'DIRECTION: '+dirCtx : ''}\n${voiceCtx}\nFORMAT: ${format}, 5-second clip. Open with camera framing. Describe character. Describe action arc. Mouth must face camera and stay open/expressive. End: soft neutral studio lighting, seamless loop.` }]
+      messages: [{ role:'user', content:`${moodCtx}\n${dirCtx ? 'DIRECTION: '+dirCtx : ''}\n${voiceCtx}\nFORMAT: ${format}, 8-second clip. Open with camera framing. Describe character. Describe action arc.${phraseText ? ' The mouth faces camera with subtle natural talking movement (soft open/close), not a fixed wide-open shape.' : ''} End: soft neutral studio lighting, seamless loop.` }]
     })
   });
   const d = await res.json();
@@ -1304,84 +1829,59 @@ async function buildPrompt(phraseText) {
 
 // ─── STEP 2: ElevenLabs TTS ───────────────────────────────────────────────────
 async function generateTTS(text) {
-  const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`, {
+  const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${getVOICE_ID()}`, {
     method: 'POST',
-    headers: { 'Content-Type':'application/json','xi-api-key':ELEVEN_KEY },
+    headers: { 'Content-Type':'application/json','xi-api-key':getELEVEN_KEY() },
     body: JSON.stringify({ text, model_id:'eleven_multilingual_v2', voice_settings:{ stability:0.5, similarity_boost:0.85, style:0.2, use_speaker_boost:true } })
   });
   if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(`ElevenLabs: ${e.detail?.message||res.statusText}`); }
   return await res.blob();
 }
 
-// ─── STEP 3: Upload audio ─────────────────────────────────────────────────────
-async function uploadAudio(blob) {
-  const form = new FormData();
-  form.append('file', new File([blob], 'voice.mp3', {type:'audio/mpeg'}));
-  const res = await fetch(`${PROXY}/upload-audio`, { method:'POST', body:form });
-  if (!res.ok) throw new Error(`Audio upload failed (${res.status})`);
-  const d = await res.json();
-  if (!d.url) throw new Error('Audio upload: no URL returned');
-  return d.url;
-}
-
-// ─── STEP 4: Kling video ──────────────────────────────────────────────────────
-async function submitKling(prompt) {
-  const token = await makeJWT();
-  const res = await fetch(`${PROXY}/v1/videos/text2video`, {
-    method:'POST',
-    headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
-    body: JSON.stringify({ model_name:'kling-v2-master', prompt, negative_prompt:'text, watermark, logo, blurry, clothing, hat, human hands', cfg_scale:0.5, mode:'pro', aspect_ratio:format, duration:'5' })
+// ─── STEP 3: Veo 3 video ─────────────────────────────────────────────────────
+// Composite the hero reference onto a background-coloured canvas at the chosen
+// aspect ratio. The resulting base64 JPEG is the starting frame for Veo image-to-video.
+let REF_CACHE = {};
+async function getReferenceImage(fmt, bg) {
+  const cacheKey = `${fmt}-${bg}`;
+  if (REF_CACHE[cacheKey]) return REF_CACHE[cacheKey];
+  const img = await new Promise((res, rej) => {
+    const i = new Image();
+    i.onload = () => res(i); i.onerror = () => rej(new Error('reference image failed to load'));
+    i.src = 'assets/Bacteria_Hero.png';
   });
-  if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(`Kling video (${res.status}): ${e.message||res.statusText}`); }
-  const d = await res.json();
-  const taskId = d?.data?.task_id;
-  if (!taskId) throw new Error('Kling: no task ID returned');
-  return taskId;
+  const dims = fmt === '9:16' ? [540,960] : fmt === '1:1' ? [720,720] : [960,540];
+  const [cw, ch] = dims;
+  const canvas = document.createElement('canvas');
+  canvas.width = cw; canvas.height = ch;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = BG_FILLS[bg] || '#e9e9ec';
+  ctx.fillRect(0, 0, cw, ch);
+  const scale = Math.min(cw/img.width, ch/img.height) * 0.94;
+  const dw = img.width*scale, dh = img.height*scale;
+  ctx.drawImage(img, (cw-dw)/2, (ch-dh)/2, dw, dh);
+  const b64 = canvas.toDataURL('image/jpeg', 0.9).split(',')[1];
+  REF_CACHE[cacheKey] = b64;
+  return b64;
 }
 
-async function pollKling(taskId) {
-  for (let i=0;i<70;i++) {
-    await sleep(3000);
-    const token = await makeJWT();
-    const res = await fetch(`${PROXY}/v1/videos/text2video/${taskId}`, {headers:{'Authorization':`Bearer ${token}`}});
-    if (!res.ok) continue;
-    const d = await res.json();
-    const t = d?.data;
-    if (!t) continue;
-    if (t.task_status==='succeed') { const url=t?.task_result?.videos?.[0]?.url; if (!url) throw new Error('Kling: no URL'); return url; }
-    if (t.task_status==='failed') throw new Error(`Kling failed: ${t.task_status_msg||'unknown'}`);
-  }
-  throw new Error('Kling: timed out');
-}
-
-// ─── STEP 5: Lip-sync ─────────────────────────────────────────────────────────
-async function submitLipSync(videoTaskId, audioUrl) {
-  const token = await makeJWT();
-  const res = await fetch(`${PROXY}/v1/videos/lip-sync`, {
-    method:'POST',
-    headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
-    body: JSON.stringify({ video_id:videoTaskId, input:{ mode:'audio2video', audio_type:'url', audio_url:audioUrl } })
+// ─── STEP 3: Veo 3 image-to-video via Vercel serverless function ──────────────
+// The server handles Veo generation + Vercel Blob storage and returns a durable URL.
+// Veo generation typically takes 1-3 min; the function has maxDuration: 300s.
+async function submitVeo(promptText) {
+  const imageBase64 = await getReferenceImage(format, background);
+  const res = await fetch('/api/generate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt: promptText, imageBase64, format, background }),
   });
-  if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(`Lip-sync (${res.status}): ${e.message||res.statusText}`); }
-  const d = await res.json();
-  const taskId = d?.data?.task_id;
-  if (!taskId) throw new Error('Lip-sync: no task ID');
-  return taskId;
-}
-
-async function pollLipSync(taskId) {
-  for (let i=0;i<40;i++) {
-    await sleep(4000);
-    const token = await makeJWT();
-    const res = await fetch(`${PROXY}/v1/videos/lip-sync/${taskId}`, {headers:{'Authorization':`Bearer ${token}`}});
-    if (!res.ok) continue;
-    const d = await res.json();
-    const t = d?.data;
-    if (!t) continue;
-    if (t.task_status==='succeed') { const url=t?.task_result?.videos?.[0]?.url; if (!url) throw new Error('Lip-sync: no URL'); return url; }
-    if (t.task_status==='failed') throw new Error(`Lip-sync failed: ${t.task_status_msg||'unknown'}`);
+  if (!res.ok) {
+    const d = await res.json().catch(() => ({}));
+    throw new Error(`Veo (${res.status}): ${d.error || res.statusText}`);
   }
-  throw new Error('Lip-sync: timed out');
+  // Server returns raw MP4 bytes — create a local object URL for the player.
+  const blob = await res.blob();
+  return URL.createObjectURL(blob);
 }
 
 // ─── ORCHESTRATE ──────────────────────────────────────────────────────────────
@@ -1392,11 +1892,13 @@ async function generate() {
   const withVoice = !noVoice && phrase;
 
   busy = true; tick(); show('loading'); resetSteps();
-  ['step-tts','step-host','step-sync'].forEach(id => {
-    document.getElementById(id).style.display = withVoice ? '' : 'none';
-  });
+  // 'step-host' (audio upload) and 'step-sync' (Kling lip-sync) are retired —
+  // the voiceover is played in sync with the muted clip client-side instead.
+  document.getElementById('step-host').style.display = 'none';
+  document.getElementById('step-sync').style.display = 'none';
+  document.getElementById('step-tts').style.display = withVoice ? '' : 'none';
 
-  let audioBlob = null, audioUrl = null, videoUrl = null;
+  let audioBlob = null, videoUrl = null;
 
   try {
     setH('Writing prompt…', 'Claude is crafting the Kling brief');
@@ -1407,25 +1909,14 @@ async function generate() {
       audioBlob = await generateTTS(phrase);
       lastAudioBlob = audioBlob;
       stepDone('step-tts','✓');
-
-      stepActive('step-host','uploading');
-      audioUrl = await uploadAudio(audioBlob);
-      stepDone('step-host','✓');
     }
 
     stepActive('step-video','queued');
-    setH('Generating video…','Kling is rendering');
-    const videoTaskId = await submitKling(prompt);
-    videoUrl = await pollKling(videoTaskId);
+    setH('Generating video…','Veo 3 is rendering — this takes 1–3 min');
+    videoUrl = await submitVeo(prompt);
     stepDone('step-video','✓');
 
-    if (withVoice) {
-      stepActive('step-sync','syncing');
-      setH('Syncing voice…','Kling lip-sync running');
-      const lipTaskId = await submitLipSync(videoTaskId, audioUrl);
-      videoUrl = await pollLipSync(lipTaskId);
-      stepDone('step-sync','✓');
-    }
+    // Voiceover plays in sync with the muted clip in showVideo().
 
     showVideo(videoUrl, phrase, noVoice ? 'No voice' : phrase);
     addHistory(videoUrl, mood?.toUpperCase()||'CUSTOM');
@@ -1467,33 +1958,121 @@ function showVideo(url, phrase, phraseLabel) {
   document.getElementById('meta-fmt').textContent    = format;
   document.getElementById('meta-phrase').textContent = phraseLabel.length>24 ? phraseLabel.slice(0,24)+'…' : phraseLabel;
 
+  const audio = document.getElementById('audio-player');
+  const voiceBtn = document.getElementById('voice-btn');
   if (lastAudioBlob && phrase) {
-    document.getElementById('audio-player').src = URL.createObjectURL(lastAudioBlob);
-    document.getElementById('audio-preview').style.display='flex';
+    audio.src = URL.createObjectURL(lastAudioBlob);
+    audio.loop = false;
+    voiceBtn.style.display = '';
+    // Keep the voiceover running in time with the looping muted clip.
+    vid.onplay  = () => { audio.play().catch(()=>{}); };
+    vid.onpause = () => audio.pause();
+    vid.ontimeupdate = () => {
+      if (Math.abs(audio.currentTime - vid.currentTime) > 0.25) {
+        try { audio.currentTime = vid.currentTime; } catch(e){}
+      }
+    };
+    audio.play().catch(()=>{}); // may be blocked until interaction; Replay voice is the fallback
   } else {
-    document.getElementById('audio-preview').style.display='none';
+    audio.pause();
+    vid.onplay = vid.onpause = vid.ontimeupdate = null;
+    voiceBtn.style.display = 'none';
   }
 
   document.getElementById('dl-btn').onclick = () => {
-    const a=document.createElement('a'); a.href=url; a.download=`insiders_${Date.now()}.mp4`;
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    if (lastAudioBlob) {
+      downloadMixed(url, lastAudioBlob);
+    } else {
+      const a = document.createElement('a'); a.href = url; a.download = `insiders_${Date.now()}.mp4`;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    }
   };
 }
 
+// Render a single-pass canvas capture mixing video + ElevenLabs audio, then download.
+async function downloadMixed(videoUrl, audioBlob) {
+  const dlBtn = document.getElementById('dl-btn');
+  const orig = dlBtn.innerHTML;
+  dlBtn.innerHTML = '<i class="ph ph-spinner"></i> Mixing…';
+  dlBtn.disabled = true;
+  try {
+    // Off-screen video clone so we don't disrupt the player
+    const vid = document.createElement('video');
+    vid.src = videoUrl;
+    vid.muted = true;
+    vid.playsInline = true;
+    document.body.appendChild(vid);
+    await new Promise((res, rej) => { vid.onloadedmetadata = res; vid.onerror = rej; });
+
+    const w = vid.videoWidth  || 720;
+    const h = vid.videoHeight || 1280;
+    const canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    const ctx = canvas.getContext('2d');
+
+    const ac = new AudioContext();
+    const audioBuf = await ac.decodeAudioData(await audioBlob.arrayBuffer());
+    const dest = ac.createMediaStreamDestination();
+
+    const mimeType = ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm']
+      .find(t => MediaRecorder.isTypeSupported(t)) || 'video/webm';
+    const combined = new MediaStream([
+      ...canvas.captureStream(30).getVideoTracks(),
+      ...dest.stream.getAudioTracks(),
+    ]);
+    const recorder = new MediaRecorder(combined, { mimeType, videoBitsPerSecond: 3000000 });
+    const chunks = [];
+    recorder.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
+
+    recorder.start(100);
+
+    const src = ac.createBufferSource();
+    src.buffer = audioBuf;
+    src.connect(dest);
+    src.start();
+
+    await vid.play();
+    let drawing = true;
+    const draw = () => { if (!drawing) return; ctx.drawImage(vid, 0, 0, w, h); requestAnimationFrame(draw); };
+    draw();
+
+    // Run for the full audio duration (voiceover may be shorter than the 8s clip)
+    await new Promise(r => setTimeout(r, audioBuf.duration * 1000 + 400));
+
+    drawing = false;
+    recorder.stop();
+    await new Promise(r => recorder.onstop = r);
+    vid.pause(); document.body.removeChild(vid); await ac.close();
+
+    const blob = new Blob(chunks, { type: 'video/webm' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `insiders_${Date.now()}.webm`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(a.href);
+  } catch(e) {
+    console.error('Mixed download failed, falling back to video only:', e);
+    const a = document.createElement('a'); a.href = videoUrl; a.download = `insiders_${Date.now()}.mp4`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  } finally {
+    dlBtn.innerHTML = orig;
+    dlBtn.disabled = false;
+  }
+}
+
 function previewAudio() {
-  const el=document.getElementById('audio-preview');
-  el.style.display=el.style.display==='none'?'flex':'none';
-  if (el.style.display==='flex') document.getElementById('audio-player').play();
+  const a = document.getElementById('audio-player');
+  if (a.paused) { a.currentTime = 0; a.play().catch(()=>{}); } else { a.pause(); }
 }
 
 function showError(msg) {
   show('output');
   document.getElementById('output').innerHTML=`
     <div class="error-box">
-      <div style="font-size:24px;margin-bottom:10px">⚠️</div>
+      <div style="font-size:28px;margin-bottom:10px;color:var(--accent)"><i class="ph ph-warning"></i></div>
       <strong>Generation failed</strong><br/>
       <span style="color:var(--text-3);font-size:10px;display:block;margin-top:6px;line-height:1.8;font-family:var(--mono)">${esc(msg)}</span>
-      <button class="out-btn ghost" style="margin-top:14px;font-family:var(--sans)" onclick="show('empty')">← Back</button>
+      <button class="out-btn ghost" style="margin-top:14px;font-family:var(--sans)" onclick="show('empty')"><i class="ph ph-arrow-left"></i> Back</button>
     </div>`;
 }
 
