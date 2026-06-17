@@ -1666,39 +1666,74 @@ async function testKeys() {
   btn.disabled = false;
 }
 
-// ─── CHARACTER BIBLE ──────────────────────────────────────────────────────────
-const BIBLE = `IAMS "Gut Bacteria" hero character — match the reference image EXACTLY:
-- A small chibi/baby humanoid: an oversized rounded dome-shaped head on a short stubby body with little arms and legs
-- Made of CLEAR translucent iridescent glass/resin — pearlescent with a soft rainbow sheen, subsurface scattering, glossy wet-looking surface and a single soft specular highlight
-- Inside the transparent head and body: a dense tangle of fine GOLDEN-AMBER coral-like filaments / glowing golden tendrils (like delicate gold noodles or brain-coral), most concentrated in the head
-- Two small round eyes set low on the face with subtle teal/dark pupils — expressive but understated, NOT large white cartoon sclera
-- A tiny mouth that moves subtly when talking
-- Gentle bounce and breathing oscillation even at rest; soft neutral studio background and lighting
-- NEVER make it purple, opaque, or a featureless blob; NEVER add clothing, hats, or extra features. It is clear glass with a glowing gold interior.`;
+// ─── CHARACTER CONTINUITY BIBLE (Gut Bacteria) ───────────────────────────────
+// This is the master reference. CHARACTER_CORE goes directly into every Veo prompt.
+// Never deviate from this spec — it enforces consistency across all generations.
 
+const CHARACTER_CORE = `CHARACTER: Chibi humanoid — oversized smooth rounded dome head (approx 60% of total height), short stubby torso, small round arms and legs, no neck. Material: CLEAR translucent iridescent glass-resin — pearlescent rainbow subsurface scattering, wet glossy surface, a single soft specular highlight on the crown of the dome. Interior: a dense tangle of fine GOLDEN-AMBER coral-like filaments glowing warmly inside the head and trailing into the body — like illuminated brain-coral or delicate gold noodles. Eyes: exactly TWO small round eyes with subtle TEAL-DARK pupils, set LOW on the face, slightly inset — small and understated, NOT large, NO white sclera, NOT Pixar-style round cartoon eyes, NOT anime — alien, quiet, slightly insectoid, matching the reference image exactly. Tiny circular mouth, barely visible at rest, subtle open-close ONLY when speaking. The character FLOATS weightlessly in mid-air with a slow gentle breathing bob — feet completely clear of any surface, genuinely suspended in space. NEVER: opaque, purple-tinted, featureless, clothed, wearing hats, large white eyes, standing on ground.`;
+
+// Action descriptions — used as Claude's creative brief. Claude writes the physical
+// movement only; the compiler handles everything structural.
 const MOOD_BRIEFS = {
-  party:   'PARTY: Full-body celebration — arms thrust upward, whole body bouncing with rhythmic joy, eyes wide with pure delight, mouth open in an ecstatic cheer, radiating explosive festive energy throughout the clip.',
-  sick:    'SICK: Lethargic and unwell — body sags and droops, head tilts slowly to one side, eyes half-lidded and glassy, subtle woozy sway, occasional limp shudder as if fighting off an ailment.',
-  sleepy:  'SLEEPY: Heavy drowsiness — eyelids drooping slowly, body gently swaying as if about to topple, a slow deep breath, a tiny yawn with mouth briefly opening, then settling back into a quiet drowsy rest.',
-  excited: 'EXCITED: Barely-contained electrified joy — body quivering and vibrating with anticipation, eyes shooting wide, arms flung out with fingers splayed, bouncing rapidly on the spot, mouth in an enormous enthusiastic grin.',
+  party:   'Full body bounces with explosive rhythmic joy, arms thrust overhead, head bobbing, the golden interior swirling and brightening with each beat, mouth wide open in an ecstatic joyful cheer.',
+  sick:    'Body droops and sags slowly, head tilts to one side in a woozy loll, eyes half-lidded and glassy, an occasional limp shudder passes through the glass form, the golden interior dims and dims.',
+  sleepy:  'Eyelids droop in slow-motion, body sways gently as if about to topple, a tiny yawn opens the mouth briefly then closes, settling into a drowsy rhythmic nod with the golden core pulsing slowly.',
+  excited: 'Body quivers and vibrates with barely-contained energy, eyes shoot wide, both arms fling out with fingers spread, bouncing rapidly on the spot, the golden interior flaring brighter with electric excitement.',
 };
 
+// Camera prompts — written in Veo 3.1′s language: technical, directional, unambiguous.
+// Each describes the EXACT mechanical movement so Veo has no room to misinterpret.
 const CAMERA_PROMPTS = {
-  pushin:   'Camera slowly and smoothly pushes in from a medium shot to a tight close-up on the character over the full clip duration, with gentle depth-of-field shift as it advances.',
-  pullback: 'Camera opens in extreme close-up on the character face and dramatically pulls back over the full clip to reveal the full body and surrounding environment — a cinematic reveal.',
-  orbit:    'Camera smoothly arcs 90 degrees around the character from left-of-centre to right-of-centre, maintaining a constant framing distance throughout the movement.',
-  shake:    'Subtle organic handheld camera energy throughout the entire clip — slight micro-jitter, gentle wobble, and natural breathing creating raw social immediacy as if shot by a human operator.',
+  pushin:
+    `CAMERA MOVEMENT: Slow, steady dolly push-in.
+Opens at a medium full-body shot with the character floating centred in frame.
+Camera glides forward on a smooth linear track for the full 8 seconds, continuously closing distance.
+Ends in an extreme close-up with the face filling the frame.
+The background compresses and softens further as the lens advances.
+Constant unhurried momentum. No pauses. No shake. No cut.`,
+
+  pullback:
+    `CAMERA MOVEMENT: Dramatic dolly pull-back reveal.
+Opens in extreme close-up — the character face fills the entire frame, cropped tight.
+Camera tracks backward smoothly and continuously for the full 8 seconds.
+Ends with the character floating small and centred in the wide environment.
+The world opens up around the character as the camera retreats.
+Cinematic, uninterrupted. No pauses. No shake. No cut.`,
+
+  orbit:
+    `CAMERA MOVEMENT: Smooth 90-degree arc orbit shot.
+Camera starts at front-right three-quarter angle, character centred in frame.
+Rotates counterclockwise on a perfect circular track at constant radius and height.
+Ends at front-left three-quarter angle.
+The character stays centred and sharp throughout; the background environment rotates past behind it.
+No camera shake, no drift, no speed variation — a clean fluid arc for the full 8 seconds.`,
+
+  shake:
+    `CAMERA MOVEMENT: Kinetic handheld urgency.
+Constant fast micro-jitter throughout the entire clip — lateral and vertical oscillations of 2-4 pixels, never settling, never smoothing out.
+Not a slow lazy sway — rapid, twitchy, alive, like adrenaline in the operator's hands.
+Sharp nervous energy. Raw social immediacy. The kind of shot that stops a thumb mid-scroll.
+The jitter is present from frame one to the last frame with no easing in or out.`,
 };
 
-// How the chosen environment authentically interacts with the TRANSLUCENT glass body.
-// Fed to Claude so the background is woven into the scene (light, refraction, caustics)
-// rather than just sitting behind the character. Green screen is deliberately flat — we
-// suppress refraction and spill so the clip stays clean for compositing.
+// Background environment blocks — written as direct Veo directives describing what the
+// scene looks like AND how the translucent glass body interacts with that light.
 const BG_BRIEFS = {
-  studio:      'SETTING: a soft neutral light-grey studio void. The clean diffused studio light wraps the character\'s translucent glass body in gentle highlights, with faint grey reflections sliding across its glossy surface and softly visible through its clear form.',
-  greenscreen: 'SETTING: a perfectly flat chroma-key green screen background, evenly lit, no shadows or gradients. Keep the glass character crisply separated with clean edges and NO green spill, refraction, or colour bleed onto its body — compositing-ready.',
-  micro:       'SETTING: a warm amber and rust microscopic world of glowing gut-microbiome filaments, heavily out-of-focus behind the character. This warm golden light refracts THROUGH the character\'s translucent glass body, tinting its interior a deeper amber-gold, scattering soft caustic glows across its surface and lighting its golden coral-like core from within.',
-  '3d':        'SETTING: a vibrant stylised 3D-rendered microbiome world of luminous cyan, magenta and gold bacteria, softly out-of-focus behind the character. These vivid colours refract and scatter THROUGH the character\'s translucent glass body — cyan and magenta highlights glinting across its surface and bleeding into its clear form while its golden interior still glows warmly.',
+  studio:
+    `ENVIRONMENT: Soft neutral light-grey studio void. Clean diffused lighting from above. No shadows on the background, gentle ambient wrap.
+GLASS INTERACTION: Studio light wraps the character's translucent glass body in gentle even highlights. Faint grey reflections slide across the glossy dome surface. The golden filament interior glows warmly through the clear glass. No colour tinting.`,
+
+  greenscreen:
+    `ENVIRONMENT: Perfectly flat chroma-key green background (#00B400). Perfectly even lighting across the entire background. No gradients, no shadows, no texture.
+GLASS INTERACTION: The glass character has crisp, clean separation from the background. ZERO green spill, colour bleed, or refraction onto the body. Clean matte edges. Compositing-ready.`,
+
+  micro:
+    `ENVIRONMENT: Warm amber and rust bokeh field — glowing gut-microbiome bacteria filaments and cells photographed under electron microscope, deeply out-of-focus, filling the entire background with warm golden light.
+GLASS INTERACTION: This warm golden-amber light refracts THROUGH the translucent glass body — tinting the interior a deeper amber-gold, scattering soft caustic glows across the dome surface, and illuminating the golden filament core from behind and within. The character glows warm with the environment's light.`,
+
+  '3d':
+    `ENVIRONMENT: Vibrant stylised 3D-rendered microbiome world — luminous cyan, magenta and gold bacteria cells and rods, softly out-of-focus, filling the background with vivid science-visualisation colour.
+GLASS INTERACTION: These vivid colours refract and scatter THROUGH the glass body — cyan and magenta highlights glint and shift across the dome surface, colour bleeds into the clear form, while the golden filament interior still glows warmly through the coloured light. The character becomes a prism for the environment.`,
 };
 
 // ─── STATE ────────────────────────────────────────────────────────────────────
@@ -1812,23 +1847,49 @@ function tick() {
 
 // ─── JWT ──────────────────────────────────────────────────────────────────────
 
-// ─── STEP 1: CLAUDE prompt ────────────────────────────────────────────────────
-async function buildPrompt(phraseText) {
-  const moodCtx  = mood ? `ACTION: ${MOOD_BRIEFS[mood]}` : '';
-  const bgCtx    = BG_BRIEFS[background] || BG_BRIEFS.studio;
-  const voiceCtx = phraseText ? `The character is talking — give it subtle, natural mouth movement (gentle opening and closing as if speaking softly), facing camera, lively but not exaggerated.` : '';
+// ─── MASTER SHOT COMPILER ─────────────────────────────────────────────────────
+// Claude writes ONLY the action sequence (25-40 words, present tense, starts with a verb).
+// Everything structural — character, float, environment, camera, quality — is assembled
+// deterministically so Veo 3.1 receives a multi-block prompt it can parse reliably.
+async function compileMasterShot(phraseText) {
+  const moodBrief = MOOD_BRIEFS[mood] || '';
+  const speechNote = phraseText
+    ? `The character speaks — include subtle natural mouth movement (soft open-close only): "${phraseText}"`
+    : 'Silent clip — no mouth movement.';
+
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: { 'Content-Type':'application/json','x-api-key':getCLAUDE_KEY(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true' },
     body: JSON.stringify({
-      model: 'claude-sonnet-4-6', max_tokens: 240,
-      system: `You write Veo 3 video prompts for social media clips. Character:\n${BIBLE}\nThe character is made of CLEAR translucent glass, so the environment behind it must be visible through its body and its light must interact with the glass — weave the setting and the character together, do not describe them as separate layers. Return ONLY the prompt. No preamble. 70-100 words.`,
-      messages: [{ role:'user', content:`${moodCtx}\n${bgCtx}\n${voiceCtx}\nFORMAT: ${format}, 8-second clip. Open with camera framing the character within the setting. Describe the translucent character and how the environment's light and colour refract through and reflect off its glass body. Describe the full action arc.${phraseText ? ' The mouth faces camera with subtle natural talking movement (soft open/close), not a fixed wide-open shape.' : ''} End: lighting consistent, seamless loop.` }]
+      model: 'claude-sonnet-4-6', max_tokens: 100,
+      system: `Write a 25-40 word action sequence for a CGI character clip. Present tense. Start with a strong verb. Describe body movement, energy and expression ONLY — no setting, no camera, no character description. Be physically specific and visceral.`,
+      messages: [{ role:'user', content:`Action preset: ${moodBrief}\n${speechNote}` }]
     })
   });
   const d = await res.json();
   if (d.error) throw new Error(`Claude: ${d.error.message}`);
-  return d.content.map(b=>b.text||'').join('').trim();
+  const actionDesc = d.content.map(b=>b.text||'').join('').trim();
+
+  // Assemble optimal Veo 3.1 multi-block prompt — each block is a separate directive layer
+  const blocks = [
+    getShotOpener(),
+    CHARACTER_CORE,
+    actionDesc,
+    BG_BRIEFS[background] || BG_BRIEFS.studio,
+    cameraMove ? CAMERA_PROMPTS[cameraMove] : null,
+    `QUALITY: Photorealistic CGI animation. Soft subsurface scattering through glass. Cinematic depth of field. ${format === '9:16' ? 'Vertical 9:16 social format.' : 'Widescreen 16:9.'} 8-second seamless loop.`,
+  ];
+  return blocks.filter(Boolean).join('\n\n');
+}
+
+function getShotOpener() {
+  switch (cameraMove) {
+    case 'pullback': return 'SHOT: Extreme close-up at frame one — character face fills the frame. Camera pulls back to wide over the full 8 seconds.';
+    case 'pushin':   return 'SHOT: Medium full-body shot at frame one. Camera pushes in to extreme close-up by the final frame.';
+    case 'orbit':    return 'SHOT: Medium three-quarter shot, character at front-right angle. Camera arcs counterclockwise to front-left over 8 seconds.';
+    case 'shake':    return 'SHOT: Medium shot, character centred. Handheld camera.';
+    default:         return 'SHOT: Medium shot. Character centred in frame, full body visible, floating in space.';
+  }
 }
 
 // ─── STEP 2: ElevenLabs TTS ───────────────────────────────────────────────────
@@ -1869,15 +1930,15 @@ async function getReferenceImage(fmt, bg) {
   return b64;
 }
 
-// ─── STEP 3: Veo 3 image-to-video via Vercel serverless function ──────────────
-// The server handles Veo generation + Vercel Blob storage and returns a durable URL.
-// Veo generation typically takes 1-3 min; the function has maxDuration: 300s.
+// ─── STEP 3: Veo 3 text-to-video via Vercel serverless function ───────────────
+// The compiled prompt contains the full character + environment description.
+// The reference image is NOT sent as a first frame — Veo's `image` param is a literal
+// first frame, not a character reference. CHARACTER_CORE in the text prompt drives fidelity.
 async function submitVeo(promptText) {
-  const imageBase64 = await getReferenceImage(format, background);
   const res = await fetch('/api/generate', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prompt: promptText, imageBase64, format, background }),
+    body: JSON.stringify({ prompt: promptText, format }),
   });
   if (!res.ok) {
     const d = await res.json().catch(() => ({}));
@@ -1905,9 +1966,8 @@ async function generate() {
   let audioBlob = null, videoUrl = null;
 
   try {
-    setH('Writing prompt…', 'Claude is crafting the video brief');
-    const basePrompt = await buildPrompt(withVoice ? phrase : '');
-    const prompt = cameraMove ? `${basePrompt} Camera: ${CAMERA_PROMPTS[cameraMove]}.` : basePrompt;
+    setH('Compiling shot…', 'Assembling prompt for Veo 3.1');
+    const prompt = await compileMasterShot(withVoice ? phrase : '');
 
     if (withVoice) {
       stepActive('step-tts','generating');
