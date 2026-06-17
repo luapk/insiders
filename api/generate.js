@@ -16,8 +16,16 @@ export default async function handler(req, res) {
   // reference image. This is NOT a first frame — Veo 3.1's `referenceImages` field with
   // referenceType 'asset' feeds the character in as an ingredient the model composites
   // into a freshly generated scene, preserving its look without freezing the opening frame.
-  const { prompt, format, imageBase64, imageMimeType } = req.body || {};
+  const { prompt, format, model, imageBase64, imageMimeType } = req.body || {};
   if (!prompt) return res.status(400).json({ error: 'prompt is required' });
+
+  // Map the client's mode toggle to a Veo model id. Quality honours kinetic camera
+  // direction far better; Fast is quicker and cheaper. Default to Fast.
+  const MODEL_IDS = {
+    fast:    'veo-3.1-fast-generate-preview',
+    quality: 'veo-3.1-generate-preview',
+  };
+  const modelId = MODEL_IDS[model] || MODEL_IDS.fast;
 
   const aspectRatio = format === '9:16' ? '9:16' : '16:9';
 
@@ -38,7 +46,7 @@ export default async function handler(req, res) {
     const ai = new GoogleGenAI({ apiKey });
 
     let operation = await ai.models.generateVideos({
-      model: 'veo-3.1-fast-generate-preview',
+      model: modelId,
       prompt,
       config,
     });

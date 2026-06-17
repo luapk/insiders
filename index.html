@@ -721,6 +721,41 @@ header {
 #go-btn:active { transform: translateY(0); }
 #go-btn:disabled { opacity: 0.25; cursor: not-allowed; transform: none; box-shadow: none; }
 
+/* ─── MODEL MODE TOGGLE (fast / quality) ─────────────────────────────── */
+.mode-toggle {
+  display: inline-flex;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 8px;
+  padding: 2px;
+  gap: 2px;
+}
+.mode-opt {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 5px 11px;
+  border-radius: 6px;
+  color: rgba(255,255,255,0.45);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.15s;
+}
+.mode-opt:hover { color: rgba(255,255,255,0.75); }
+.mode-opt.active {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hi) 100%);
+  color: #000;
+  font-weight: 700;
+  box-shadow: 0 2px 10px rgba(170,255,0,0.30);
+}
+/* on the dark output bar the inactive text needs to stay legible */
+.output-actions .mode-toggle { background: rgba(255,255,255,0.07); }
+
 /* ─── RIGHT PANEL ────────────────────────────────────────────────────── */
 #right {
   background: #000000;
@@ -1503,9 +1538,15 @@ video#result::-webkit-media-controls-start-playback-button { display: none !impo
       <div class="empty-cta">
         <div class="empty-title">Ready to generate</div>
         <div class="empty-sub">Choose a direction and a voice line, then generate.</div>
-        <button id="go-btn" onclick="generate()" disabled>
-          <span id="go-label">Generate Clip</span>
-        </button>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <button id="go-btn" onclick="generate()" disabled>
+            <span id="go-label">Generate Clip</span>
+          </button>
+          <div class="mode-toggle" title="Fast = quicker & cheaper. Quality = richer motion & camera dynamics.">
+            <button class="mode-opt active" data-model="fast" onclick="selectModel(this)"><i class="ph ph-lightning"></i> Fast</button>
+            <button class="mode-opt" data-model="quality" onclick="selectModel(this)"><i class="ph ph-sparkle"></i> Quality</button>
+          </div>
+        </div>
         <div><span class="kbd">⌘ Return</span> <span style="color:rgba(255,255,255,0.35);font-family:var(--sans);font-size:10px">to generate</span></div>
       </div>
     </div>
@@ -1548,6 +1589,10 @@ video#result::-webkit-media-controls-start-playback-button { display: none !impo
       </div>
       <div class="output-actions">
         <button class="out-btn ghost" id="voice-btn" onclick="previewAudio()"><i class="ph ph-microphone"></i> Replay voice</button>
+        <div class="mode-toggle" title="Fast = quicker & cheaper. Quality = richer motion & camera dynamics.">
+          <button class="mode-opt active" data-model="fast" onclick="selectModel(this)"><i class="ph ph-lightning"></i> Fast</button>
+          <button class="mode-opt" data-model="quality" onclick="selectModel(this)"><i class="ph ph-sparkle"></i> Quality</button>
+        </div>
         <button class="out-btn ghost" onclick="generate()"><i class="ph ph-arrows-clockwise"></i> Regenerate</button>
         <button class="out-btn primary" id="dl-btn"><i class="ph ph-download-simple"></i> Download</button>
       </div>
@@ -1766,7 +1811,7 @@ GLASS INTERACTION: These vivid colours refract and scatter THROUGH the glass bod
 };
 
 // ─── STATE ────────────────────────────────────────────────────────────────────
-let mood = null, format = '9:16', background = 'studio', activeCat = 'branded', selectedPhrase = null, cameraMove = null, cast = 'solo';
+let mood = null, format = '9:16', background = 'studio', activeCat = 'branded', selectedPhrase = null, cameraMove = null, cast = 'solo', veoModel = 'fast';
 let busy = false, history = [], lastAudioBlob = null;
 
 // ─── CHAR DROPDOWN ────────────────────────────────────────────────────────────
@@ -1850,6 +1895,12 @@ function selectBg(el) {
 function selectCast(el) {
   document.querySelectorAll('.cast-btn').forEach(b => b.classList.remove('active'));
   el.classList.add('active'); cast = el.dataset.cast;
+}
+
+// Model mode toggle — keep both toggle instances (empty CTA + output bar) in sync.
+function selectModel(el) {
+  veoModel = el.dataset.model;
+  document.querySelectorAll('.mode-opt').forEach(b => b.classList.toggle('active', b.dataset.model === veoModel));
 }
 
 function getPhrase() {
@@ -1990,7 +2041,7 @@ async function submitVeo(promptText) {
   const res = await fetch('/api/generate', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prompt: promptText, format, imageBase64: ref.data, imageMimeType: ref.mimeType }),
+    body: JSON.stringify({ prompt: promptText, format, model: veoModel, imageBase64: ref.data, imageMimeType: ref.mimeType }),
   });
   if (!res.ok) {
     const d = await res.json().catch(() => ({}));
@@ -2029,7 +2080,7 @@ async function generate() {
     }
 
     stepActive('step-video','queued');
-    setH('Generating video…','Veo 3 is rendering — this takes 1–3 min');
+    setH('Generating video…', veoModel === 'quality' ? 'Veo 3.1 Quality is rendering — this takes 2–4 min' : 'Veo 3.1 Fast is rendering — this takes 1–3 min');
     videoUrl = await submitVeo(prompt);
     stepDone('step-video','✓');
 
