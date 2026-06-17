@@ -25,7 +25,9 @@ export default async function handler(req, res) {
 
   const bgPrompt = BACKGROUNDS[background] || BACKGROUNDS.studio;
   const fullPrompt = `${prompt} Background: ${bgPrompt}.`;
-  const aspectRatio = format === '9:16' ? '9:16' : format === '1:1' ? '1:1' : '16:9';
+  // Veo on the Gemini API only supports 16:9 and 9:16 — clamp 1:1 (and anything
+  // else) to the nearest valid ratio rather than letting the API reject it.
+  const aspectRatio = format === '9:16' ? '9:16' : '16:9';
 
   try {
     const ai = new GoogleGenAI({ apiKey });
@@ -52,7 +54,7 @@ export default async function handler(req, res) {
     while (!operation.done) {
       if (Date.now() - started > 270000) throw new Error('Veo generation timed out');
       await new Promise(r => setTimeout(r, 10000));
-      operation = await ai.operations.get(operation);
+      operation = await ai.operations.get({ operation });
     }
 
     if (operation.error) {
