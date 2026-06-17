@@ -1841,12 +1841,24 @@ async function pollKling(taskId) {
 }
 
 // ─── STEP 5: Lip-sync ─────────────────────────────────────────────────────────
-async function submitLipSync(videoTaskId, audioUrl) {
+// Send the voice clip inline as base64 (audio_type:'file') so no external audio
+// hosting is required — the clip never has to live at a public URL.
+function blobToB64(blob) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onloadend = () => resolve(String(r.result).split(',')[1]); // strip data: prefix
+    r.onerror = reject;
+    r.readAsDataURL(blob);
+  });
+}
+
+async function submitLipSync(videoTaskId, audioBlob) {
   const token = await makeJWT();
+  const audioB64 = await blobToB64(audioBlob);
   const res = await fetch(`${PROXY}/v1/videos/lip-sync`, {
     method:'POST',
     headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
-    body: JSON.stringify({ video_id:videoTaskId, input:{ mode:'audio2video', audio_type:'url', audio_url:audioUrl } })
+    body: JSON.stringify({ video_id:videoTaskId, input:{ mode:'audio2video', audio_type:'file', audio_file: audioB64 } })
   });
   if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(`Lip-sync (${res.status}): ${e.message||res.statusText}`); }
   const d = await res.json();
@@ -1878,11 +1890,13 @@ async function generate() {
   const withVoice = !noVoice && phrase;
 
   busy = true; tick(); show('loading'); resetSteps();
-  ['step-tts','step-host','step-sync'].forEach(id => {
+  // 'step-host' (audio upload) is no longer used — audio goes to lip-sync inline.
+  document.getElementById('step-host').style.display = 'none';
+  ['step-tts','step-sync'].forEach(id => {
     document.getElementById(id).style.display = withVoice ? '' : 'none';
   });
 
-  let audioBlob = null, audioUrl = null, videoUrl = null;
+  let audioBlob = null, videoUrl = null;
 
   try {
     setH('Writing prompt…', 'Claude is crafting the Kling brief');
@@ -1893,10 +1907,6 @@ async function generate() {
       audioBlob = await generateTTS(phrase);
       lastAudioBlob = audioBlob;
       stepDone('step-tts','✓');
-
-      stepActive('step-host','uploading');
-      audioUrl = await uploadAudio(audioBlob);
-      stepDone('step-host','✓');
     }
 
     stepActive('step-video','queued');
@@ -1908,7 +1918,7 @@ async function generate() {
     if (withVoice) {
       stepActive('step-sync','syncing');
       setH('Syncing voice…','Kling lip-sync running');
-      const lipTaskId = await submitLipSync(videoTaskId, audioUrl);
+      const lipTaskId = await submitLipSync(videoTaskId, audioBlob);
       videoUrl = await pollLipSync(lipTaskId);
       stepDone('step-sync','✓');
     }
