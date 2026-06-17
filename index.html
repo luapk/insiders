@@ -1704,18 +1704,18 @@ async function testKeys() {
 // This is the master reference. CHARACTER_CORE goes directly into every Veo prompt.
 // Never deviate from this spec — it enforces consistency across all generations.
 
-const CHARACTER_CORE = `CHARACTER: Chibi humanoid — oversized smooth rounded dome head (approx 60% of total height), short stubby torso, small round arms and legs, no neck. Material: CLEAR translucent iridescent glass-resin — pearlescent rainbow subsurface scattering, wet glossy surface, a single soft specular highlight on the crown of the dome. Interior: a dense tangle of fine GOLDEN-AMBER coral-like filaments glowing warmly inside the head and trailing into the body — like illuminated brain-coral or delicate gold noodles. Eyes: exactly TWO small round eyes with subtle TEAL-DARK pupils, set LOW on the face, slightly inset — small and understated, NOT large, NO white sclera, NOT Pixar-style round cartoon eyes, NOT anime — alien, quiet, slightly insectoid, matching the reference image exactly. Mouth: small circular opening, closed and barely visible at rest. When the character speaks: the mouth opens and closes continuously to form each word — jaw drops for open vowels, lips press together for B/M/P sounds, mouth is NEVER frozen open or shut mid-speech, always in motion matching the words. The character FLOATS weightlessly in mid-air with a slow gentle breathing bob — feet completely clear of any surface, genuinely suspended in space. NEVER: opaque, purple-tinted, featureless, clothed, wearing hats, large white eyes, standing on ground, frozen mouth.`;
+const CHARACTER_CORE = `CHARACTER: Chibi humanoid — oversized smooth rounded dome head (approx 60% of total height), short stubby torso, small round arms and legs, no neck. Material: CLEAR translucent iridescent glass-resin — pearlescent rainbow subsurface scattering, wet glossy surface, a single soft specular highlight on the crown of the dome. Interior: a dense tangle of fine GOLDEN-AMBER coral-like filaments glowing warmly inside the head and trailing into the body — like illuminated brain-coral or delicate gold noodles. Eyes: exactly TWO small round eyes with subtle TEAL-DARK pupils, set LOW on the face, slightly inset — small and understated, NOT large, NO white sclera, NOT Pixar-style round cartoon eyes, NOT anime — alien, quiet, slightly insectoid, matching the reference image exactly. Mouth: a small circular opening, closed and barely visible by default. The character FLOATS weightlessly in mid-air with a slow gentle breathing bob — feet completely clear of any surface, genuinely suspended in space. NEVER: opaque, purple-tinted, featureless, clothed, wearing hats, large white eyes, standing on ground.`;
 
 // CROWD directive — appended when "Crowd" cast is selected. Establishes that the scene is
 // filled with EXACT identical replicas of the hero (no variation), one hero front-and-centre.
-const CROWD_DIRECTIVE = `CAST: A CROWD of MANY identical copies of this exact character fills the scene — the same glass figure repeated dozens of times, every copy sharing identical proportions, glass material, golden interior and eyes with ZERO variation between them. One hero copy sits front-and-centre, slightly larger and in sharpest focus; the others fan out beside and behind it at varying depths, progressively softer in focus. They all float in space and move together as one lively coordinated group.`;
+const CROWD_DIRECTIVE = `CAST: The scene is filled with a CROWD of the SAME character — every single figure is an EXACT identical copy of the reference-image character, each one with the same oversized clear-glass dome head, the same dense GOLDEN-AMBER coral filament interior glowing inside its head and body, the same low small teal eyes, the same proportions and the same size. Critical: every character in the crowd is fully detailed and identical to the hero — none is a plain or empty glass figure, every one has the glowing golden interior. They are spread evenly across the frame at the SAME scale, all floating in space — NONE is larger, closer, or more prominent than any other, there is no single focal hero. Each character moves INDEPENDENTLY and naturally with its own loose, unsynchronised timing — a living crowd of individuals, NOT a synchronised routine, slight natural offsets between them.`;
 
 // Action descriptions — used as Claude's creative brief. Claude writes the physical
 // movement only; the compiler handles everything structural.
 const MOOD_BRIEFS = {
-  party:   'Full body bounces with explosive rhythmic joy, arms thrust overhead, head bobbing, the golden interior swirling and brightening with each beat, mouth wide open in an ecstatic joyful cheer.',
-  sick:    'Body droops and sags slowly, head tilts to one side in a woozy loll, eyes half-lidded and glassy, an occasional limp shudder passes through the glass form, the golden interior dims and dims.',
-  sleepy:  'Eyelids droop in slow-motion, body sways gently as if about to topple, a tiny yawn opens the mouth briefly then closes, settling into a drowsy rhythmic nod with the golden core pulsing slowly.',
+  party:   'Full body bounces with explosive rhythmic joy, arms thrust overhead, head bobbing, the golden interior swirling and brightening with each beat.',
+  sick:    'Body droops and sags slowly, head tilts to one side in a woozy loll, eyes half-lidded and glassy, an occasional limp shudder passes through the glass form, the golden interior dimming.',
+  sleepy:  'Eyelids droop in slow-motion, body sways gently as if about to topple, settling into a drowsy rhythmic nod with the golden core pulsing slowly.',
   excited: 'Body quivers and vibrates with barely-contained energy, eyes shoot wide, both arms fling out with fingers spread, bouncing rapidly on the spot, the golden interior flaring brighter with electric excitement.',
 };
 
@@ -1727,20 +1727,22 @@ const ENV_LABELS = {
   '3d':        'a vibrant 3D-rendered microbiome world of luminous cyan, magenta and gold cells',
 };
 
-// Camera prompts — FAST, dynamic, social-native moves. Each is written to grab attention
-// in the first second. [CHARACTER] and [ENVIRONMENT] are substituted at compile time.
+// Camera prompts — FAST, dynamic, social-native moves. Written motion-first with concrete
+// cinematography terms Veo 3.1 responds to, and explicit anti-static emphasis so the model
+// produces a continuously moving camera rather than a locked-off shot.
+// [CHARACTER] and [ENVIRONMENT] are substituted at compile time.
 const CAMERA_PROMPTS = {
   crashzoom:
-    `CAMERA: Crash zoom — snap punch-in. Start on a wide shot of [CHARACTER] in [ENVIRONMENT]. On the first syllable the camera executes a sudden aggressive crash zoom straight into a tight close-up of the character's face, motion blur streaking the frame for a split second before locking sharp. Subtle handheld micro-shake on the hold. 35mm look, shallow depth of field, snappy comedic timing. Audio: a quick whoosh on the zoom, then clean dialogue.`,
+    `CAMERA MOVEMENT — AGGRESSIVE CRASH ZOOM: The camera starts wide on [CHARACTER] in [ENVIRONMENT], then violently and rapidly RUSHES forward in a sudden crash zoom, the lens slamming from wide to an extreme tight close-up of the character's face in under a second. Heavy motion blur streaks across the frame during the rush, then the shot locks sharp with a subtle handheld jolt. Snappy, punchy, comedic energy. Fast-moving lens, shallow depth of field, 35mm. The camera is in constant aggressive motion — absolutely NOT a static or locked-off shot.`,
 
   whippan:
-    `CAMERA: Whip pan in. The camera whips fast from left to right with heavy horizontal motion blur, [ENVIRONMENT] smearing into streaks, then snaps to a hard stop framing [CHARACTER] in a centred medium close-up exactly as they begin to speak. The whip lasts under half a second. Energetic, kinetic, social-native. Audio: a sharp whip-crack whoosh resolving cleanly into the character's voice.`,
+    `CAMERA MOVEMENT — FAST WHIP PAN: The camera whip-pans extremely fast sideways, [ENVIRONMENT] smearing into heavy horizontal motion-blur streaks, then snaps to an abrupt hard stop framing [CHARACTER] in a centred medium close-up. The whipping blur lasts only a fraction of a second before the hard lock-on. Violent kinetic energy, social-native, thumb-stopping. The camera moves fast and dynamically — never static, never locked-off.`,
 
   heroorbit:
-    `CAMERA: Hero orbit — arc around. The camera arcs smoothly 180 degrees around [CHARACTER] at close range, [ENVIRONMENT] sliding past behind them while they stay locked in frame speaking to lens throughout. Slow at the start, slight acceleration through the middle, easing to a front-on hero close-up on the final line. Cinematic and glossy, shallow depth of field, soft rim light separating the character from [ENVIRONMENT]. Steady gimbal motion, no shake.`,
+    `CAMERA MOVEMENT — ORBITING TRACKING SHOT: The camera arcs continuously and smoothly all the way around [CHARACTER] in a sweeping 180-degree orbit at close range, [ENVIRONMENT] sweeping past behind as the character stays locked centre-frame. Gliding gimbal motion that accelerates slightly through the middle of the move and eases to a front-on close-up. Glossy, cinematic, premium, shallow depth of field, soft rim light. The camera is gliding and continuously moving the entire time — never a static or locked-off shot.`,
 
   fpvdive:
-    `CAMERA: FPV dive in. A fast first-person FPV drone shot races forward through [ENVIRONMENT], banking past softly glowing villi and floating fibre particles, building speed, then decelerates hard into a stable close-up of [CHARACTER], who turns to camera as the dive lands and begins to speak. Wide 14mm FPV lens with slight fisheye, fast motion easing out sharply on arrival. Immersive and visceral. Audio: rushing air and a low whoomph on the landing beat.`,
+    `CAMERA MOVEMENT — FAST FPV DRONE DIVE: An immersive first-person FPV drone shot races and barrels forward at speed through [ENVIRONMENT], banking and rolling past glowing details and floating particles, building velocity, then decelerating hard as it swoops into a close-up of [CHARACTER] on arrival. Wide 14mm fisheye FPV lens, fast fluid flight, hard ease-out as it lands on the character. High-energy, visceral, swooping. The camera is flying fast and continuously the whole clip — never a static or locked-off shot.`,
 };
 
 // Background environment blocks — written as direct Veo directives describing what the
@@ -1880,15 +1882,15 @@ function tick() {
 async function compileMasterShot(phraseText) {
   const moodBrief = MOOD_BRIEFS[mood] || '';
   const isCrowd   = cast === 'crowd';
-  const speaker   = isCrowd ? 'The hero character at front-and-centre' : 'The character';
+  const speaker   = isCrowd ? 'Every character in the crowd' : 'The character';
 
   // Tell Claude whether the character speaks + whether it's solo or a crowd, so the
-  // action brief is written for the right subject (one figure vs a coordinated group).
-  const speechCtx = phraseText
-    ? 'The subject speaks while performing the action. Blend body expression with the act of speaking — they coexist. Keep mouth movement implicit in the description.'
-    : 'Silent — no speech.';
+  // action brief is written for the right subject (one figure vs a natural crowd).
+  // NOTE: never mention the mouth/talking here — mouth state is controlled by a
+  // separate block so silent clips stay completely mouth-still.
+  const speechCtx = 'Describe body and limb movement only. Do NOT mention the mouth, lips, talking or speaking.';
   const castCtx = isCrowd
-    ? 'Subject is a CROWD of many identical characters moving together as one group, with a single hero leading at the front. Describe the collective group movement and shared energy — ripples through the crowd, synchronised and overlapping motion.'
+    ? 'Subject is a natural CROWD of identical characters, each moving independently with its own loose unsynchronised timing — NOT a synchronised routine, no single leader, all equally prominent. Describe the overall energy and the natural individual variation across the crowd.'
     : 'Subject is a single character.';
 
   const res = await fetch('https://api.anthropic.com/v1/messages', {
@@ -1904,13 +1906,17 @@ async function compileMasterShot(phraseText) {
   if (d.error) throw new Error(`Claude: ${d.error.message}`);
   const actionDesc = d.content.map(b => b.text || '').join('').trim();
 
-  // DIALOGUE block — only present when voice is on.
-  // Giving Veo the exact words drives mouth-shape generation for those phonemes.
-  // In a crowd, ONLY the front hero lip-syncs — the rest react with body movement
-  // (a crowd all mouthing in unison reads as uncanny). Eyes must not drift (continuity bible).
-  const dialogueBlock = phraseText ? `DIALOGUE: ${speaker} speaks these exact words aloud, mouth animating to every syllable with natural phoneme shapes:
+  // MOUTH STATE — explicit and mutually exclusive.
+  // Silent: mouth stays completely closed and still (this is what makes "no dialogue"
+  // actually produce zero mouth movement). Speaking: exact words drive phoneme shapes.
+  let mouthBlock;
+  if (phraseText) {
+    mouthBlock = `DIALOGUE: ${speaker} speaks these exact words aloud, mouth animating to every syllable with natural phoneme shapes:
 "${phraseText}"
-Lip detail: lips part for vowels, close for B/M/P sounds, jaw drops for open vowels, tongue visible briefly on T/D/L sounds. The mouth is continuously animated throughout the speech — no frozen or static mouth. Eyes remain identical to the reference image; expression consistent with the action above. Do NOT widen eyes or change their shape during speech.${isCrowd ? ' Only the front-and-centre hero lip-syncs to these words; the surrounding crowd does NOT speak — they react with body movement only (bouncing, nodding, gesturing).' : ''}` : null;
+Lip detail: lips part for vowels, close for B/M/P sounds, jaw drops for open vowels, tongue visible briefly on T/D/L sounds. The mouth is continuously animated throughout the speech — no frozen or static mouth. Eyes remain identical to the reference image; expression consistent with the action above. Do NOT widen eyes or change their shape during speech.${isCrowd ? ' In the crowd, the characters speak with natural, loosely-timed mouth movement — not robotically in unison, each slightly offset.' : ''}`;
+  } else {
+    mouthBlock = `MOUTH: The mouth stays completely CLOSED and still for the entire clip. The character does NOT talk, does NOT open its mouth, and shows NO mouth or lip movement at any point. This is a silent clip — only body movement, no speaking.`;
+  }
 
   // A selected camera move defines its own opening framing, so it replaces the default
   // shot block. With no camera move we fall back to a clean centred shot.
@@ -1922,9 +1928,9 @@ Lip detail: lips part for vowels, close for B/M/P sounds, jaw drops for open vow
     CHARACTER_CORE,
     isCrowd ? CROWD_DIRECTIVE : null,
     actionDesc,
-    dialogueBlock,
+    mouthBlock,
     BG_BRIEFS[background] || BG_BRIEFS.studio,
-    `QUALITY: Photorealistic CGI animation. Soft subsurface scattering through glass. Cinematic depth of field. ${format === '9:16' ? 'Vertical 9:16 social format.' : 'Widescreen 16:9.'}${isCrowd ? ' Every character is an EXACT identical replica — same size, proportions, glass material, golden interior and eyes. A dense, lively, coordinated crowd, all in perfect character continuity.' : ''} 8-second seamless loop.`,
+    `QUALITY: Photorealistic CGI animation. Soft subsurface scattering through glass. Cinematic depth of field. ${format === '9:16' ? 'Vertical 9:16 social format.' : 'Widescreen 16:9.'}${isCrowd ? ' Every character is an EXACT identical, fully-detailed replica — same size, proportions, glass material, glowing golden interior and eyes — none more prominent than another, each moving naturally and independently.' : ''} 8-second seamless loop.`,
   ];
   return blocks.filter(Boolean).join('\n\n');
 }
@@ -1932,7 +1938,7 @@ Lip detail: lips part for vowels, close for B/M/P sounds, jaw drops for open vow
 // Substitute the [CHARACTER]/[ENVIRONMENT] placeholders in the selected camera move.
 function compileCamera() {
   if (!cameraMove || !CAMERA_PROMPTS[cameraMove]) return null;
-  const charLabel = cast === 'crowd' ? 'the hero glass character (front-and-centre of the crowd)' : 'the translucent glass character';
+  const charLabel = cast === 'crowd' ? 'one of the identical glass characters at the front of the crowd' : 'the translucent glass character';
   const env = ENV_LABELS[background] || ENV_LABELS.studio;
   return CAMERA_PROMPTS[cameraMove]
     .split('[CHARACTER]').join(charLabel)
@@ -1941,7 +1947,7 @@ function compileCamera() {
 
 function getDefaultShot() {
   return cast === 'crowd'
-    ? 'SHOT: Wide shot. Hero character centred front, a crowd of identical characters fanning out behind, all floating in space.'
+    ? 'SHOT: Wide shot. A crowd of identical characters spread evenly across the frame at the same scale, all floating in space, none more prominent than another.'
     : 'SHOT: Medium shot. Character centred in frame, full body visible, floating in space.';
 }
 
