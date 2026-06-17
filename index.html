@@ -1868,10 +1868,13 @@ async function submitVeo(promptText) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ prompt: promptText, imageBase64, format, background }),
   });
-  const d = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(`Veo (${res.status}): ${d.error || res.statusText}`);
-  if (!d.url) throw new Error('Veo: no video URL in response');
-  return d.url;
+  if (!res.ok) {
+    const d = await res.json().catch(() => ({}));
+    throw new Error(`Veo (${res.status}): ${d.error || res.statusText}`);
+  }
+  // Server returns raw MP4 bytes — create a local object URL for the player.
+  const blob = await res.blob();
+  return URL.createObjectURL(blob);
 }
 
 // ─── ORCHESTRATE ──────────────────────────────────────────────────────────────
