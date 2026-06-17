@@ -41,7 +41,9 @@ export default async function handler(req, res) {
         durationSeconds: 8,          // Veo 3.1 accepts 4, 6 or 8 only
         resolution: '720p',
         numberOfVideos: 1,
-        generateAudio: false,        // ElevenLabs voiceover is played over the muted clip
+        // Note: the Gemini API always generates native audio for Veo 3.1 and
+        // rejects a generateAudio toggle. Harmless here — the clip plays muted
+        // with the ElevenLabs voiceover over the top.
       },
     });
 
