@@ -37,6 +37,9 @@ export default async function handler(req, res) {
       prompt: promptPayload,
       duration: 5,
       aspectRatio,
+      // Retrying a rate-limit (1 req/min below $100 balance) within seconds is
+      // futile — it just burns attempts and obscures the real error. Fail fast.
+      maxRetries: 1,
       providerOptions: {
         google: { generateAudio: false },
         vertex: { generateAudio: false },
