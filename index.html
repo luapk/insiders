@@ -2146,11 +2146,18 @@ function loadScript(src) {
 let _ffmpeg = null;
 async function loadFFmpeg() {
   if (_ffmpeg) return _ffmpeg;
-  // Single-threaded core (v0.11) — works without cross-origin isolation (no COOP/COEP).
-  if (!window.FFmpeg) await loadScript('https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js');
-  const { createFFmpeg } = window.FFmpeg;
-  const ff = createFFmpeg({ log: false, corePath: 'https://unpkg.com/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js' });
-  await ff.load();
+  // ffmpeg.wasm 0.12 with the SINGLE-THREADED core — runs WITHOUT SharedArrayBuffer, so
+  // no cross-origin isolation (COOP/COEP) is needed (which would break our CDN assets).
+  if (!window.FFmpegWASM) await loadScript('https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js');
+  if (!window.FFmpegUtil) await loadScript('https://unpkg.com/@ffmpeg/util@0.12.1/dist/umd/index.js');
+  const { FFmpeg } = window.FFmpegWASM;
+  const { toBlobURL } = window.FFmpegUtil;
+  const base = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
+  const ff = new FFmpeg();
+  await ff.load({
+    coreURL: await toBlobURL(`${base}/ffmpeg-core.js`, 'text/javascript'),
+    wasmURL: await toBlobURL(`${base}/ffmpeg-core.wasm`, 'application/wasm'),
+  });
   _ffmpeg = ff;
   return ff;
 }
@@ -2180,32 +2187,34 @@ async function restripeVoice(videoUrl, onPhase) {
   const ff = await loadFFmpeg();
   onPhase && onPhase('extracting voice…');
   const videoBytes = new Uint8Array(await (await fetch(videoUrl)).arrayBuffer());
-  ff.FS('writeFile', 'in.mp4', videoBytes);
+  await ff.writeFile('in.mp4', videoBytes);
 
   // Extract the spoken voice as a clean mono mp3 for conversion.
-  await ff.run('-i', 'in.mp4', '-vn', '-ar', '44100', '-ac', '1', '-q:a', '2', 'voice.mp3');
-  const voiceBytes = ff.FS('readFile', 'voice.mp3');
+  await ff.exec(['-i', 'in.mp4', '-vn', '-ar', '44100', '-ac', '1', '-q:a', '2', 'voice.mp3']);
+  const voiceBytes = await ff.readFile('voice.mp3');
 
   onPhase && onPhase('converting voice…');
   const converted = await elevenSpeechToSpeech(new Blob([voiceBytes.buffer], { type: 'audio/mpeg' }));
-  ff.FS('writeFile', 'newvoice.mp3', new Uint8Array(await converted.arrayBuffer()));
+  await ff.writeFile('newvoice.mp3', new Uint8Array(await converted.arrayBuffer()));
 
   // Re-mux: keep the video stream untouched, swap in the converted voice. Try AAC first
   // (best compatibility); if this ffmpeg.wasm core lacks the AAC encoder, copy the MP3
   // stream into the MP4 instead (Chrome + social uploads handle MP4/MP3 fine).
   onPhase && onPhase('remuxing…');
-  try {
-    await ff.run('-i', 'in.mp4', '-i', 'newvoice.mp3', '-map', '0:v:0', '-map', '1:a:0',
-                 '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', 'out.mp4');
-  } catch (_) {
-    try { ff.FS('unlink', 'out.mp4'); } catch (__) {}
-    await ff.run('-i', 'in.mp4', '-i', 'newvoice.mp3', '-map', '0:v:0', '-map', '1:a:0',
-                 '-c:v', 'copy', '-c:a', 'copy', 'out.mp4');
-  }
-  const outBytes = ff.FS('readFile', 'out.mp4');
+  const mux = async (codecArgs) => {
+    try { await ff.deleteFile('out.mp4'); } catch (_) {}
+    await ff.exec(['-i', 'in.mp4', '-i', 'newvoice.mp3', '-map', '0:v:0', '-map', '1:a:0',
+                   '-c:v', 'copy', ...codecArgs, 'out.mp4']);
+    return await ff.readFile('out.mp4'); // throws if ffmpeg didn't produce the file
+  };
+  let outBytes;
+  try { outBytes = await mux(['-c:a', 'aac', '-b:a', '192k']); }
+  catch (_) { outBytes = await mux(['-c:a', 'copy']); }
 
   // Clean up the in-memory FS so repeated runs don't accumulate.
-  ['in.mp4', 'voice.mp3', 'newvoice.mp3', 'out.mp4'].forEach(f => { try { ff.FS('unlink', f); } catch (_) {} });
+  for (const f of ['in.mp4', 'voice.mp3', 'newvoice.mp3', 'out.mp4']) {
+    try { await ff.deleteFile(f); } catch (_) {}
+  }
 
   return new Blob([outBytes.buffer], { type: 'video/mp4' });
 }
