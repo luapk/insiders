@@ -2056,7 +2056,15 @@ function showVideo(url, phrase, phraseLabel) {
   // A clip with dialogue plays with sound; a silent clip stays muted.
   const hasVoice = phraseLabel !== 'No voice';
   vid.volume = 1;
-  vid.muted = !hasVoice;
+  // The HTML `muted` attribute and JS `.muted` property are distinct — set both explicitly
+  // so they stay in sync when the browser re-evaluates audio state on tab focus/blur.
+  if (hasVoice) {
+    vid.removeAttribute('muted');
+    vid.muted = false;
+  } else {
+    vid.setAttribute('muted', '');
+    vid.muted = true;
+  }
   vid.src = url;
   // If the browser blocks unmuted autoplay, fall back to muted so the clip still plays.
   vid.play().catch(() => { vid.muted = true; vid.play().catch(()=>{}); });
@@ -2105,6 +2113,18 @@ function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>
 function toast(msg) { const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),2200); }
 
 document.getElementById('custom-phrase').addEventListener('keydown', e=>{ if((e.metaKey||e.ctrlKey)&&e.key==='Enter'){e.preventDefault();generate();} });
+
+// When the user switches tabs, pause the main video so the browser doesn't replay
+// a partial audio buffer on return (causing the audio-snippet glitch).
+document.addEventListener('visibilitychange', () => {
+  const vid = document.getElementById('result');
+  if (!vid.src) return;
+  if (document.hidden) {
+    vid.pause();
+  } else {
+    vid.play().catch(() => {});
+  }
+});
 
 show('empty'); tick();
 </script>
