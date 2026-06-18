@@ -887,8 +887,8 @@ header {
   width: 280px;
 }
 
-.loading-title { font-family: var(--serif); font-weight: 500; font-size: 20px; color: #ffffff; letter-spacing: 0.01em; }
-.loading-sub { font-size: 10px; color: rgba(255,255,255,0.45); font-family: var(--mono); }
+.loading-title { font-family: var(--serif); font-weight: 500; font-size: 20px; color: var(--text); letter-spacing: 0.01em; }
+.loading-sub { font-size: 10px; color: var(--text-2); font-family: var(--mono); }
 
 .pipeline { width: 100%; margin-top: 4px; display: flex; flex-direction: column; gap: 3px; }
 
@@ -898,21 +898,21 @@ header {
   gap: 10px;
   padding: 9px 12px;
   border-radius: var(--r-md);
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.10);
+  background: var(--glass);
+  border: 1px solid var(--line);
   font-size: 10px;
   transition: border-color 0.3s, background 0.3s;
 }
 
-.pipe-step.done   { border-color: rgba(170,255,0,0.25); background: rgba(170,255,0,0.06); }
-.pipe-step.active { border-color: rgba(170,255,0,0.40); background: rgba(170,255,0,0.09); }
+.pipe-step.done   { border-color: rgba(136,204,0,0.45); background: rgba(170,255,0,0.10); }
+.pipe-step.active { border-color: rgba(136,204,0,0.60); background: rgba(170,255,0,0.16); }
 .pipe-step.hidden { display: none; }
 
-.step-icon { font-size: 14px; width: 18px; text-align: center; flex-shrink: 0; color: var(--accent); line-height: 1; }
-.step-label { flex: 1; color: rgba(255,255,255,0.65); font-family: var(--sans); font-size: 11px; }
-.step-status { font-size: 9px; color: rgba(255,255,255,0.35); letter-spacing: 0.06em; font-family: var(--mono); }
-.pipe-step.done   .step-status { color: rgba(170,255,0,0.75); }
-.pipe-step.active .step-status { color: var(--accent); animation: blink 1.5s infinite; }
+.step-icon { font-size: 14px; width: 18px; text-align: center; flex-shrink: 0; color: var(--accent-hi); line-height: 1; }
+.step-label { flex: 1; color: var(--text-2); font-family: var(--sans); font-size: 11px; }
+.step-status { font-size: 9px; color: var(--text-3); letter-spacing: 0.06em; font-family: var(--mono); }
+.pipe-step.done   .step-status { color: var(--accent-hi); }
+.pipe-step.active .step-status { color: var(--accent-hi); animation: blink 1.5s infinite; }
 @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
 .spinner-sm { width: 11px; height: 11px; border: 1.5px solid rgba(170,255,0,0.25); border-top-color: var(--accent-hi); border-radius: 50%; animation: spin 0.7s linear infinite; }
