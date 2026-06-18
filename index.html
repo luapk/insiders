@@ -2150,14 +2150,17 @@ async function loadFFmpeg() {
   // is same-origin: no SharedArrayBuffer (no COOP/COEP needed), and no cross-origin Worker
   // construction (which the browser blocks). Absolute URLs so the worker resolves the core
   // correctly regardless of the page path.
+  // Passing classWorkerURL makes ffmpeg spawn a MODULE worker, which loads the core via
+  // dynamic import() — so coreURL must be the ESM core build (it has `export default`),
+  // NOT the UMD build.
   const abs = (p) => new URL(p, location.href).href;
   if (!window.FFmpegWASM) await loadScript(abs('vendor/ffmpeg/ffmpeg.js'));
   const { FFmpeg } = window.FFmpegWASM;
   const ff = new FFmpeg();
   await ff.load({
     classWorkerURL: abs('vendor/ffmpeg/814.ffmpeg.js'),
-    coreURL: abs('vendor/ffmpeg/ffmpeg-core.js'),
-    wasmURL: abs('vendor/ffmpeg/ffmpeg-core.wasm'),
+    coreURL: abs('vendor/ffmpeg/esm/ffmpeg-core.js'),
+    wasmURL: abs('vendor/ffmpeg/esm/ffmpeg-core.wasm'),
   });
   _ffmpeg = ff;
   return ff;
