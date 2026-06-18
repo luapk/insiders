@@ -2129,25 +2129,40 @@ function show(state) {
   document.getElementById('output').style.display  = state==='output'  ? 'flex':'none';
 }
 
-function showVideo(url, phrase, phraseLabel) {
+async function showVideo(url, phrase, phraseLabel) {
   show('output');
   const vid = document.getElementById('result');
   if (format==='9:16') { vid.style.height='min(calc(100vh - 210px),500px)'; vid.style.width='auto'; }
   else                 { vid.style.width='min(calc(100% - 48px),700px)'; vid.style.height='auto'; }
 
-  // Play with Veo's native audio (voice baked into the clip — perfect sync).
-  // A clip with dialogue plays with sound; a silent clip stays muted.
   const hasVoice = phraseLabel !== 'No voice';
-  vid.volume = 1;
 
-  // Remote Blob URLs stream progressively (unlike the old in-memory blob: URLs),
-  // so we must wait until a frame is actually decodable before playing — otherwise
-  // the element sits on a black frame. Start muted so autoplay is guaranteed by
-  // browser policy; voiced clips are unmuted once playback has actually begun.
-  vid.preload = 'auto';
+  document.getElementById('meta-mood').textContent   = mood?.toUpperCase()||'CUSTOM';
+  document.getElementById('meta-fmt').textContent    = format;
+  document.getElementById('meta-phrase').textContent = phraseLabel.length>24 ? phraseLabel.slice(0,24)+'…' : phraseLabel;
+
+  // A remote Blob URL streams progressively and was sitting on a black frame.
+  // Fetch the whole MP4 into memory and play it from an object URL — this is the
+  // exact path that worked before Blob (fully-buffered, instantly decodable).
+  // The remote `url` is still kept for the history strip + sharing.
+  if (vid._objUrl) { URL.revokeObjectURL(vid._objUrl); vid._objUrl = null; }
+  let playUrl = url;
+  try {
+    const resp = await fetch(url);
+    if (resp.ok) {
+      const blob = await resp.blob();
+      playUrl = URL.createObjectURL(blob);
+      vid._objUrl = playUrl;
+    }
+  } catch (_) { /* fall back to streaming the remote URL directly */ }
+
+  // Play with Veo's native audio (voice baked into the clip — perfect sync).
+  // Start muted so autoplay is guaranteed by browser policy; voiced clips are
+  // unmuted once playback has actually begun.
+  vid.volume = 1;
   vid.muted = true;
   vid.setAttribute('muted', '');
-  vid.src = url;
+  vid.src = playUrl;
   vid.load();
 
   // The result clip plays through ONCE; the replay button reveals when it ends.
@@ -2157,8 +2172,6 @@ function showVideo(url, phrase, phraseLabel) {
 
   const startPlayback = () => {
     vid.play().then(() => {
-      // Once frames are rendering, unmute voiced clips. If the browser blocks the
-      // unmute (no user gesture) the click-to-unmute recovery below still works.
       if (hasVoice) { vid.muted = false; vid.removeAttribute('muted'); }
     }).catch(() => { vid.muted = true; vid.play().catch(()=>{}); });
   };
@@ -2169,13 +2182,10 @@ function showVideo(url, phrase, phraseLabel) {
   vid.style.cursor = hasVoice ? 'pointer' : 'default';
   vid.onclick = hasVoice ? () => { vid.muted = !vid.muted; } : null;
 
-  document.getElementById('meta-mood').textContent   = mood?.toUpperCase()||'CUSTOM';
-  document.getElementById('meta-fmt').textContent    = format;
-  document.getElementById('meta-phrase').textContent = phraseLabel.length>24 ? phraseLabel.slice(0,24)+'…' : phraseLabel;
-
-  // Download the raw Veo MP4 — audio is already baked in.
+  // Download the raw Veo MP4 — audio is already baked in. Use the in-memory copy
+  // when available (cross-origin download attribute is ignored on remote URLs).
   document.getElementById('dl-btn').onclick = () => {
-    const a = document.createElement('a'); a.href = url; a.download = `insiders_${Date.now()}.mp4`;
+    const a = document.createElement('a'); a.href = playUrl; a.download = `insiders_${Date.now()}.mp4`;
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
   };
 }
