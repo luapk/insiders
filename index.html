@@ -1365,10 +1365,20 @@ video#result::-webkit-media-controls-start-playback-button { display: none !impo
     </div>
     <div class="settings-field">
       <div class="settings-label" style="display:flex;align-items:center;justify-content:space-between">
+        ElevenLabs (voice restripe) <span id="t-eleven" class="test-badge"></span>
+      </div>
+      <input class="settings-input" id="s-eleven" type="password" placeholder="ElevenLabs API key…"/>
+    </div>
+    <div class="settings-field">
+      <div class="settings-label">Voice ID</div>
+      <input class="settings-input" id="s-voice" type="text" placeholder="fBD19tfE58bkETeiwUoC"/>
+    </div>
+    <div class="settings-field">
+      <div class="settings-label" style="display:flex;align-items:center;justify-content:space-between">
         Veo 3.1 (direct via Google Gemini) <span id="t-veo" class="test-badge"></span>
       </div>
       <div style="font-size:10px;color:var(--text-3);line-height:1.5;font-family:var(--mono);background:rgba(0,0,0,0.15);border-radius:6px;padding:8px 10px;border:1px solid rgba(255,255,255,0.08)">
-        Set <strong style="color:var(--text-2)">GEMINI_API_KEY</strong> in your Vercel project environment variables — it lives on the server, not here. Voice-over is generated natively by Veo (Scottish accent).
+        Set <strong style="color:var(--text-2)">GEMINI_API_KEY</strong> in your Vercel project environment variables — it lives on the server, not here. For voiced clips, Veo speaks the line and ElevenLabs restripes it into your chosen voice (timing preserved for perfect sync).
       </div>
     </div>
     <div class="settings-actions">
@@ -1621,7 +1631,7 @@ video#result::-webkit-media-controls-start-playback-button { display: none !impo
         </div>
         <div class="pipe-step pending" id="step-sync">
           <span class="step-icon"><i class="ph ph-waveform"></i></span>
-          <span class="step-label">Lip-sync</span>
+          <span class="step-label">Restripe voice</span>
           <span class="step-status" id="step-sync-s">waiting</span>
         </div>
       </div>
@@ -1684,14 +1694,19 @@ function lockSubmit(){
 // ─── CONFIG (from localStorage — set via gear icon in header) ─────────────────
 function cfg(k) { return localStorage.getItem('iams_'+k) || ''; }
 function getCLAUDE_KEY()  { return cfg('claude_key'); }
-// ElevenLabs is currently switched off — voice is generated natively by Veo.
+function getELEVEN_KEY()  { return cfg('eleven_key'); }
+// Default to the approved Scottish voice if none is set.
+const DEFAULT_VOICE_ID = 'fBD19tfE58bkETeiwUoC';
+function getVOICE_ID()    { return cfg('voice_id') || DEFAULT_VOICE_ID; }
 function keysConfigured() {
   return cfg('claude_key');
 }
 
 // ─── SETTINGS UI ──────────────────────────────────────────────────────────────
 function openSettings() {
-  document.getElementById('s-claude').value   = cfg('claude_key');
+  document.getElementById('s-claude').value = cfg('claude_key');
+  document.getElementById('s-eleven').value = cfg('eleven_key');
+  document.getElementById('s-voice').value  = cfg('voice_id');
   document.getElementById('settings-modal').classList.add('open');
 }
 function closeSettings() {
@@ -1699,6 +1714,8 @@ function closeSettings() {
 }
 function saveSettings() {
   localStorage.setItem('iams_claude_key', document.getElementById('s-claude').value.trim());
+  localStorage.setItem('iams_eleven_key', document.getElementById('s-eleven').value.trim());
+  localStorage.setItem('iams_voice_id',   document.getElementById('s-voice').value.trim());
   closeSettings();
   checkKeysBanner();
 }
@@ -1721,8 +1738,10 @@ async function testKeys() {
   }
 
   const claudeKey = document.getElementById('s-claude').value.trim();
+  const elevenKey = document.getElementById('s-eleven').value.trim();
 
   badge('t-claude','checking','testing…');
+  badge('t-eleven','checking','testing…');
   badge('t-veo',   'checking','testing…');
 
   // Claude
@@ -1734,6 +1753,16 @@ async function testKeys() {
     });
     badge('t-claude', r.ok ? 'ok' : 'err', r.ok ? '✓ valid' : `✗ ${r.status}`);
   } catch(e) { badge('t-claude','err','✗ network'); }
+
+  // ElevenLabs — voice conversion (speech-to-speech) for the restripe
+  if (elevenKey) {
+    try {
+      const r = await fetch('https://api.elevenlabs.io/v1/user', { headers: { 'xi-api-key': elevenKey } });
+      badge('t-eleven', r.ok ? 'ok' : 'err', r.ok ? '✓ valid' : `✗ ${r.status}`);
+    } catch(e) { badge('t-eleven','err','✗ network'); }
+  } else {
+    badge('t-eleven','err','✗ not set');
+  }
 
   // Veo — ping the Vercel function with an empty body to check env config
   try {
@@ -1997,10 +2026,11 @@ Lip detail: lips part for vowels, close for B/M/P sounds, jaw drops for open vow
     mouthBlock = `MOUTH: The mouth stays completely CLOSED and still for the entire clip. The character does NOT talk, does NOT open its mouth, and shows NO mouth or lip movement at any point. This is a silent clip — only body movement, no speaking.`;
   }
 
-  // SFX — soft underwater ambience runs under every clip, reinforcing the weightless,
-  // submerged float. When the character speaks, the Scottish voice sits clearly on top.
+  // SFX. For SILENT clips: soft underwater ambience. For VOICED clips: CLEAN voice only,
+  // no SFX/music/ambience — the audio track is later extracted and run through ElevenLabs
+  // speech-to-speech, which needs dry, isolated speech to convert cleanly.
   const sfxBlock = phraseText
-    ? `SFX: A soft underwater ambient soundscape throughout — muffled submerged tones, gentle drifting bubbles and a calm low subaquatic hum, as if the whole scene is suspended deep underwater. The high-pitched Scottish voice-over sits clearly and intelligibly on top of this soft underwater ambience.`
+    ? `AUDIO: The ONLY audio is the character's spoken voice — clean, dry and clearly recorded with NO background music, NO sound effects, NO ambience and NO underwater noise of any kind. Just the isolated voice.`
     : `SFX: A soft underwater ambient soundscape throughout — muffled submerged tones, gentle drifting bubbles and a calm low subaquatic hum, as if the whole scene is suspended deep underwater. No speech, no music — only the gentle underwater ambience.`;
 
   // A selected camera move defines its own opening framing, so it replaces the default
@@ -2074,10 +2104,84 @@ async function submitVeo(promptText) {
   return d.url;
 }
 
+// ─── VOICE RESTRIPE (ElevenLabs speech-to-speech) ─────────────────────────────
+// Veo renders the clip with a clean spoken voice. We extract that audio, run it
+// through ElevenLabs speech-to-speech (which preserves the exact timing/pacing and
+// only swaps the vocal identity), then re-mux the converted voice back over the
+// untouched video — so the new Scottish voice lands on the original mouth positions.
+// Everything runs in the browser (ffmpeg.wasm + the client-held ElevenLabs key).
+
+function loadScript(src) {
+  return new Promise((res, rej) => {
+    const s = document.createElement('script');
+    s.src = src; s.onload = res; s.onerror = () => rej(new Error('Failed to load ' + src));
+    document.head.appendChild(s);
+  });
+}
+
+let _ffmpeg = null;
+async function loadFFmpeg() {
+  if (_ffmpeg) return _ffmpeg;
+  // Single-threaded core (v0.11) — works without cross-origin isolation (no COOP/COEP).
+  if (!window.FFmpeg) await loadScript('https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js');
+  const { createFFmpeg } = window.FFmpeg;
+  const ff = createFFmpeg({ log: false, corePath: 'https://unpkg.com/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js' });
+  await ff.load();
+  _ffmpeg = ff;
+  return ff;
+}
+
+// Convert dry source speech into the chosen voice, preserving timing exactly.
+async function elevenSpeechToSpeech(audioBlob) {
+  const key = getELEVEN_KEY();
+  if (!key) throw new Error('ElevenLabs API key not set — add it via the gear icon.');
+  const voiceId = getVOICE_ID();
+  const fd = new FormData();
+  fd.append('audio', audioBlob, 'voice.mp3');
+  fd.append('model_id', 'eleven_multilingual_sts_v2');
+  fd.append('output_format', 'mp3_44100_128');
+  fd.append('remove_background_noise', 'true');
+  const r = await fetch(`https://api.elevenlabs.io/v1/speech-to-speech/${voiceId}`, {
+    method: 'POST', headers: { 'xi-api-key': key }, body: fd,
+  });
+  if (!r.ok) {
+    const t = await r.text().catch(() => '');
+    throw new Error(`ElevenLabs STS ${r.status}: ${t.slice(0, 160) || r.statusText}`);
+  }
+  return await r.blob();
+}
+
+// Full restripe: video URL in → final MP4 Blob (new voice) out.
+async function restripeVoice(videoUrl, onPhase) {
+  const ff = await loadFFmpeg();
+  onPhase && onPhase('extracting voice…');
+  const videoBytes = new Uint8Array(await (await fetch(videoUrl)).arrayBuffer());
+  ff.FS('writeFile', 'in.mp4', videoBytes);
+
+  // Extract the spoken voice as a clean mono mp3 for conversion.
+  await ff.run('-i', 'in.mp4', '-vn', '-ar', '44100', '-ac', '1', '-q:a', '2', 'voice.mp3');
+  const voiceBytes = ff.FS('readFile', 'voice.mp3');
+
+  onPhase && onPhase('converting voice…');
+  const converted = await elevenSpeechToSpeech(new Blob([voiceBytes.buffer], { type: 'audio/mpeg' }));
+  ff.FS('writeFile', 'newvoice.mp3', new Uint8Array(await converted.arrayBuffer()));
+
+  // Re-mux: keep the video stream untouched, swap in the converted voice.
+  onPhase && onPhase('remuxing…');
+  await ff.run('-i', 'in.mp4', '-i', 'newvoice.mp3', '-map', '0:v:0', '-map', '1:a:0',
+               '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', 'out.mp4');
+  const outBytes = ff.FS('readFile', 'out.mp4');
+
+  // Clean up the in-memory FS so repeated runs don't accumulate.
+  ['in.mp4', 'voice.mp3', 'newvoice.mp3', 'out.mp4'].forEach(f => { try { ff.FS('unlink', f); } catch (_) {} });
+
+  return new Blob([outBytes.buffer], { type: 'video/mp4' });
+}
+
 // ─── ORCHESTRATE ──────────────────────────────────────────────────────────────
-// Voice-over is generated natively by Veo as part of the clip (perfect sync). The
-// selected phrase + Scottish voice direction goes into the Veo DIALOGUE block; no
-// separate TTS or client-side audio muxing.
+// Veo renders the clip with a clean spoken voice; for voiced clips we then restripe
+// that voice through ElevenLabs speech-to-speech (timing preserved → mouth stays in
+// sync) and re-mux it back over the video.
 async function generate() {
   if (busy) return;
   const phrase    = getPhrase();
@@ -2085,12 +2189,12 @@ async function generate() {
   const withVoice = !noVoice && phrase;
 
   busy = true; tick(); show('loading'); resetSteps();
-  // Only the video step remains — Veo renders picture + voice together.
-  document.getElementById('step-tts').style.display = 'none';
+  // Unused legacy steps stay hidden; the restripe step only shows for voiced clips.
+  document.getElementById('step-tts').style.display  = 'none';
   document.getElementById('step-host').style.display = 'none';
-  document.getElementById('step-sync').style.display = 'none';
+  document.getElementById('step-sync').style.display = withVoice ? 'flex' : 'none';
 
-  let videoUrl = null;
+  let finalUrl = null;
 
   try {
     setH('Compiling shot…', 'Assembling prompt for Veo 3.1');
@@ -2098,11 +2202,27 @@ async function generate() {
 
     stepActive('step-video','queued');
     setH('Generating video…', veoModel === 'quality' ? 'Veo 3.1 Quality is rendering — this takes 2–4 min' : 'Veo 3.1 Fast is rendering — this takes 1–3 min');
-    videoUrl = await submitVeo(prompt);
+    const videoUrl = await submitVeo(prompt);
     stepDone('step-video','✓');
+    finalUrl = videoUrl;
 
-    showVideo(videoUrl, phrase, noVoice ? 'No voice' : phrase);
-    addHistory(videoUrl, mood?.toUpperCase()||'CUSTOM');
+    // Voiced clips: restripe Veo's voice into the chosen ElevenLabs voice.
+    if (withVoice) {
+      try {
+        stepActive('step-sync','starting…');
+        setH('Restriping voice…', 'Converting to your voice with ElevenLabs — timing preserved');
+        const finalBlob = await restripeVoice(videoUrl, msg => stepActive('step-sync', msg));
+        finalUrl = URL.createObjectURL(finalBlob);
+        stepDone('step-sync','✓');
+      } catch (e) {
+        // Fall back to the original Veo voice so a restripe failure never blocks output.
+        stepDone('step-sync','skipped');
+        toast('Voice restripe failed — using Veo voice. ' + e.message);
+      }
+    }
+
+    showVideo(finalUrl, phrase, noVoice ? 'No voice' : phrase);
+    addHistory(finalUrl, mood?.toUpperCase()||'CUSTOM');
 
   } catch(err) { showError(err.message); }
 
