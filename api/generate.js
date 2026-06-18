@@ -68,14 +68,27 @@ export default async function handler(req, res) {
     if (operation.error) throw new Error(operation.error.message || 'Veo generation failed');
 
     const generated = operation.response?.generatedVideos?.[0];
+
+    // Veo silently returns a blank video (no URI) when its safety filter fires.
+    if (generated?.raiFilteredReason) {
+      throw new Error(`Veo safety filter triggered: ${generated.raiFilteredReason}. Try a different prompt or action.`);
+    }
+
     let uri = generated?.video?.uri;
     if (!uri) throw new Error('Veo returned no video URI');
+
+    // Sanity-check: a valid 8-second MP4 is at minimum several hundred KB.
+    // If the download is tiny it almost certainly came back blank.
+    const MIN_BYTES = 50_000;
 
     if (!uri.includes('alt=media')) uri += (uri.includes('?') ? '&' : '?') + 'alt=media';
     const dl = await fetch(uri, { headers: { 'x-goog-api-key': apiKey } });
     if (!dl.ok) throw new Error(`Video download failed (${dl.status})`);
 
     const videoBytes = Buffer.from(await dl.arrayBuffer());
+    if (videoBytes.length < MIN_BYTES) {
+      throw new Error(`Veo returned a blank video (${videoBytes.length} bytes) — likely a safety filter. Try adjusting the prompt.`);
+    }
 
     // Upload to Vercel Blob for persistent storage — survives tab refresh,
     // allows direct-link sharing, and keeps the browser memory footprint low.
