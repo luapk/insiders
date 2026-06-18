@@ -758,7 +758,7 @@ header {
 
 /* ─── RIGHT PANEL ────────────────────────────────────────────────────── */
 #right {
-  background: #000000;
+  background: var(--bg);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -783,20 +783,54 @@ header {
 /* ─── EMPTY STATE ────────────────────────────────────────────────────── */
 #empty {
   display: flex;
-  flex-direction: row;
   align-items: center;
-  gap: 40px;
-  padding: 24px;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
   position: relative;
   z-index: 1;
+  overflow: hidden;
   animation: fadeUp 0.4s ease-out;
+}
+
+/* ambient preview clip plays silently, full-bleed and darkened behind the CTA */
+.empty-bg-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(0.48) saturate(1.05);
+  z-index: 0;
+}
+/* darkening veil to keep the glass panel text crisp */
+#empty::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, rgba(0,0,0,0.12) 0%, rgba(0,0,0,0.55) 100%);
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* glassmorphism CTA panel floating over the clip */
+.empty-glass {
+  position: relative;
+  z-index: 2;
+  background: rgba(18,20,16,0.30);
+  backdrop-filter: blur(22px) saturate(1.3);
+  -webkit-backdrop-filter: blur(22px) saturate(1.3);
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 22px;
+  padding: 32px 36px;
+  box-shadow: 0 16px 50px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.12);
 }
 
 .empty-cta {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 12px;
+  gap: 14px;
 }
 
 .empty-char { animation: float 3.5s ease-in-out infinite; }
@@ -897,7 +931,28 @@ header {
   z-index: 1;
 }
 
-.video-wrap { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 0; width: 100%; }
+.video-wrap { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 0; width: 100%; position: relative; }
+
+/* replay overlay — the result clip plays once, then offers a manual replay */
+.replay-btn {
+  position: absolute;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 66px; height: 66px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.28);
+  color: #fff;
+  font-size: 26px;
+  cursor: pointer;
+  transition: all 0.15s;
+  z-index: 3;
+}
+.video-wrap.ended .replay-btn { display: flex; animation: fadeUp 0.25s ease-out; }
+.replay-btn:hover { background: var(--accent); color: #000; border-color: var(--accent); transform: scale(1.06); }
 
 video#result {
   display: block;
@@ -1524,20 +1579,22 @@ video#result::-webkit-media-controls-start-playback-button { display: none !impo
   <div id="right">
 
     <div id="empty">
-      <video autoplay loop muted playsinline src="assets/gut-preview.mp4" style="height:400px;width:auto;border-radius:16px;flex-shrink:0;"></video>
-      <div class="empty-cta">
-        <div class="empty-title">Ready to generate</div>
-        <div class="empty-sub">Choose a direction and a voice line, then generate.</div>
-        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-          <button id="go-btn" onclick="generate()" disabled>
-            <span id="go-label">Generate Clip</span>
-          </button>
-          <div class="mode-toggle" title="Fast = quicker & cheaper. Quality = richer motion & camera dynamics.">
-            <button class="mode-opt active" data-model="fast" onclick="selectModel(this)"><i class="ph ph-lightning"></i> Fast</button>
-            <button class="mode-opt" data-model="quality" onclick="selectModel(this)"><i class="ph ph-sparkle"></i> Quality</button>
+      <video class="empty-bg-video" autoplay loop muted playsinline src="assets/insiders.mp4"></video>
+      <div class="empty-glass">
+        <div class="empty-cta">
+          <div class="empty-title">Ready to generate</div>
+          <div class="empty-sub">Choose a direction and a voice line, then generate.</div>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <button id="go-btn" onclick="generate()" disabled>
+              <span id="go-label">Generate Clip</span>
+            </button>
+            <div class="mode-toggle" title="Fast = quicker & cheaper. Quality = richer motion & camera dynamics.">
+              <button class="mode-opt active" data-model="fast" onclick="selectModel(this)"><i class="ph ph-lightning"></i> Fast</button>
+              <button class="mode-opt" data-model="quality" onclick="selectModel(this)"><i class="ph ph-sparkle"></i> Quality</button>
+            </div>
           </div>
+          <div><span class="kbd">⌘ Return</span> <span style="color:rgba(255,255,255,0.35);font-family:var(--sans);font-size:10px">to generate</span></div>
         </div>
-        <div><span class="kbd">⌘ Return</span> <span style="color:rgba(255,255,255,0.35);font-family:var(--sans);font-size:10px">to generate</span></div>
       </div>
     </div>
 
@@ -1570,7 +1627,8 @@ video#result::-webkit-media-controls-start-playback-button { display: none !impo
 
     <div id="output">
       <div class="video-wrap">
-        <video id="result" autoplay loop muted playsinline disablepictureinpicture disableremoteplayback></video>
+        <video id="result" autoplay muted playsinline disablepictureinpicture disableremoteplayback></video>
+        <button id="replay-btn" class="replay-btn" onclick="replayResult()" title="Replay"><i class="ph ph-play"></i></button>
       </div>
       <div class="output-meta">
         <span class="meta-chip c" id="meta-mood">—</span>
@@ -2066,6 +2124,10 @@ function showVideo(url, phrase, phraseLabel) {
     vid.muted = true;
   }
   vid.src = url;
+  // The result clip plays through ONCE; the replay button reveals when it ends.
+  const wrap = vid.closest('.video-wrap');
+  wrap.classList.remove('ended');
+  vid.onended = () => wrap.classList.add('ended');
   // If the browser blocks unmuted autoplay, fall back to muted so the clip still plays.
   vid.play().catch(() => { vid.muted = true; vid.play().catch(()=>{}); });
   // Click the video to toggle sound (recovery if autoplay was muted).
@@ -2081,6 +2143,13 @@ function showVideo(url, phrase, phraseLabel) {
     const a = document.createElement('a'); a.href = url; a.download = `insiders_${Date.now()}.mp4`;
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
   };
+}
+
+function replayResult() {
+  const vid = document.getElementById('result');
+  vid.closest('.video-wrap').classList.remove('ended');
+  vid.currentTime = 0;
+  vid.play().catch(()=>{});
 }
 
 function showError(msg) {
@@ -2121,7 +2190,8 @@ document.addEventListener('visibilitychange', () => {
   if (!vid.src) return;
   if (document.hidden) {
     vid.pause();
-  } else {
+  } else if (!vid.ended) {
+    // Only resume if the clip hasn't already played through — it plays once.
     vid.play().catch(() => {});
   }
 });
