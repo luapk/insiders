@@ -1773,6 +1773,16 @@ const MOOD_BRIEFS = {
   excited: 'Body quivers and vibrates with barely-contained energy, eyes shoot wide, both arms fling out with fingers spread, bouncing rapidly on the spot, the golden interior flaring brighter with electric excitement.',
 };
 
+// Crowd-specific action briefs — a whole rave of identical characters reads very differently
+// from a single figure. When present, these override the solo brief in crowd mode. The body
+// movement only; mouth/goo (e.g. being sick) is handled separately in the MOUTH block.
+const CROWD_MOOD_BRIEFS = {
+  party:   'The whole crowd bounces and bobs up and down in the air to a pounding rave beat, hands thrown overhead, heads nodding hard, golden interiors flaring on the beat — and ONE character crowd-surfs, lying back and floating along the top of the crowd, passed over the upraised hands of the others.',
+  sick:    'The crowd lurches and convulses in queasy waves, bodies hunching and shuddering, heads lolling, the golden interiors turning a sickly murky green as they heave.',
+  sleepy:  'The crowd drifts drowsily — SOME characters are completely fast asleep, hanging limp with eyes shut and golden cores dimmed low, while others nod off in slow heavy bobs, the odd one jolting awake before drooping again.',
+  excited: 'The whole crowd vibrates and quivers with barely-contained energy, eyes shooting wide, arms flinging out, every character bouncing rapidly in place out of sync, golden interiors flaring electric-bright across the crowd.',
+};
+
 // Short environment labels for substitution into the [ENVIRONMENT] placeholder below.
 const ENV_LABELS = {
   studio:      'a clean neutral light-grey studio space',
@@ -1942,8 +1952,8 @@ function tick() {
 // We then mute the Veo audio and layer ElevenLabs on top client-side — the result is
 // a visual that was *generated* to mouth those words, playing in sync with the matching audio.
 async function compileMasterShot(phraseText) {
-  const moodBrief = MOOD_BRIEFS[mood] || '';
   const isCrowd   = cast === 'crowd';
+  const moodBrief = (isCrowd && CROWD_MOOD_BRIEFS[mood]) || MOOD_BRIEFS[mood] || '';
   const speaker   = isCrowd ? 'Every character in the crowd' : 'The character';
 
   // Tell Claude whether the character speaks + whether it's solo or a crowd, so the
@@ -1977,6 +1987,10 @@ async function compileMasterShot(phraseText) {
 "${phraseText}"
 VOICE: A high-pitched, characterful SCOTTISH accent — bright, playful and energetic, clearly Scottish. The spoken audio matches the mouth movement exactly.
 Lip detail: lips part for vowels, close for B/M/P sounds, jaw drops for open vowels, tongue visible briefly on T/D/L sounds. The mouth is continuously animated throughout the speech — no frozen or static mouth. Eyes remain identical to the reference image; expression consistent with the action above. Do NOT widen eyes or change their shape during speech.${isCrowd ? ' In the crowd, the characters speak with natural, loosely-timed mouth movement — not robotically in unison, each slightly offset.' : ''}`;
+  } else if (mood === 'sick') {
+    // Sick + silent: the mouth opens to be sick, vomiting bright green goo. This is the
+    // hero gag of the SICK action, so it overrides the usual closed-mouth silent rule.
+    mouthBlock = `MOUTH / BEING SICK: ${speaker} heaves and the mouth opens wide to be violently sick — bright, glowing GREEN goo erupts and spills out of the mouth, stringy and translucent, splattering outward and drifting away into the surrounding water in soft focus.${isCrowd ? ' Several characters across the crowd retch and throw up the green goo at their own loose, unsynchronised timing — not all at once.' : ''} The mouth opens only to vomit the goo — no speaking, no words.`;
   } else {
     mouthBlock = `MOUTH: The mouth stays completely CLOSED and still for the entire clip. The character does NOT talk, does NOT open its mouth, and shows NO mouth or lip movement at any point. This is a silent clip — only body movement, no speaking.`;
   }
