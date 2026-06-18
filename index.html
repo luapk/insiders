@@ -2058,6 +2058,7 @@ async function getCharacterReference() {
 // ─── STEP 3: Veo 3.1 video via Vercel serverless function ─────────────────────
 // Sends the compiled multi-block prompt + the character as an asset reference image.
 // Veo generation typically takes 1-3 min; the function has maxDuration: 300s.
+// Server uploads the MP4 to Vercel Blob and returns { url } — a persistent public URL.
 async function submitVeo(promptText) {
   const ref = await getCharacterReference();
   const res = await fetch('/api/generate', {
@@ -2065,13 +2066,10 @@ async function submitVeo(promptText) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ prompt: promptText, format, model: veoModel, imageBase64: ref.data, imageMimeType: ref.mimeType }),
   });
-  if (!res.ok) {
-    const d = await res.json().catch(() => ({}));
-    throw new Error(`Veo (${res.status}): ${d.error || res.statusText}`);
-  }
-  // Server returns raw MP4 bytes — create a local object URL for the player.
-  const blob = await res.blob();
-  return URL.createObjectURL(blob);
+  const d = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(`Veo (${res.status}): ${d.error || res.statusText}`);
+  if (!d.url) throw new Error('No URL returned from server');
+  return d.url;
 }
 
 // ─── ORCHESTRATE ──────────────────────────────────────────────────────────────

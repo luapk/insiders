@@ -1,4 +1,5 @@
 import { GoogleGenAI } from '@google/genai';
+import { put } from '@vercel/blob';
 
 export const config = { maxDuration: 300 };
 
@@ -9,6 +10,12 @@ export default async function handler(req, res) {
   if (!apiKey) {
     return res.status(500).json({
       error: 'GEMINI_API_KEY is not set. Add it to your Vercel project environment variables.',
+    });
+  }
+
+  if (!process.env.BLOB_READ_WRITE_TOKEN) {
+    return res.status(500).json({
+      error: 'BLOB_READ_WRITE_TOKEN is not set. Add it to your Vercel project environment variables.',
     });
   }
 
@@ -29,14 +36,14 @@ export default async function handler(req, res) {
 
   const aspectRatio = format === '9:16' ? '9:16' : '16:9';
 
-  const config = {
+  const genConfig = {
     aspectRatio,
     durationSeconds: 8,
     resolution: '720p',
     numberOfVideos: 1,
   };
   if (imageBase64) {
-    config.referenceImages = [{
+    genConfig.referenceImages = [{
       image: { imageBytes: imageBase64, mimeType: imageMimeType || 'image/png' },
       referenceType: 'asset',
     }];
@@ -48,7 +55,7 @@ export default async function handler(req, res) {
     let operation = await ai.models.generateVideos({
       model: modelId,
       prompt,
-      config,
+      config: genConfig,
     });
 
     const started = Date.now();
@@ -69,10 +76,16 @@ export default async function handler(req, res) {
     if (!dl.ok) throw new Error(`Video download failed (${dl.status})`);
 
     const videoBytes = Buffer.from(await dl.arrayBuffer());
-    res.setHeader('Content-Type', 'video/mp4');
-    res.setHeader('Content-Length', videoBytes.length);
-    res.setHeader('Cache-Control', 'no-store');
-    return res.status(200).end(videoBytes);
+
+    // Upload to Vercel Blob for persistent storage — survives tab refresh,
+    // allows direct-link sharing, and keeps the browser memory footprint low.
+    const filename = `insiders_${Date.now()}.mp4`;
+    const { url } = await put(filename, videoBytes, {
+      access: 'public',
+      contentType: 'video/mp4',
+    });
+
+    return res.status(200).json({ url });
 
   } catch (e) {
     console.error('Video generation failed:', e);
