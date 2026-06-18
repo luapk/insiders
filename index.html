@@ -2139,23 +2139,33 @@ function showVideo(url, phrase, phraseLabel) {
   // A clip with dialogue plays with sound; a silent clip stays muted.
   const hasVoice = phraseLabel !== 'No voice';
   vid.volume = 1;
-  // The HTML `muted` attribute and JS `.muted` property are distinct — set both explicitly
-  // so they stay in sync when the browser re-evaluates audio state on tab focus/blur.
-  if (hasVoice) {
-    vid.removeAttribute('muted');
-    vid.muted = false;
-  } else {
-    vid.setAttribute('muted', '');
-    vid.muted = true;
-  }
+
+  // Remote Blob URLs stream progressively (unlike the old in-memory blob: URLs),
+  // so we must wait until a frame is actually decodable before playing — otherwise
+  // the element sits on a black frame. Start muted so autoplay is guaranteed by
+  // browser policy; voiced clips are unmuted once playback has actually begun.
+  vid.preload = 'auto';
+  vid.muted = true;
+  vid.setAttribute('muted', '');
   vid.src = url;
+  vid.load();
+
   // The result clip plays through ONCE; the replay button reveals when it ends.
   const wrap = vid.closest('.video-wrap');
   wrap.classList.remove('ended');
   vid.onended = () => wrap.classList.add('ended');
-  // If the browser blocks unmuted autoplay, fall back to muted so the clip still plays.
-  vid.play().catch(() => { vid.muted = true; vid.play().catch(()=>{}); });
-  // Click the video to toggle sound (recovery if autoplay was muted).
+
+  const startPlayback = () => {
+    vid.play().then(() => {
+      // Once frames are rendering, unmute voiced clips. If the browser blocks the
+      // unmute (no user gesture) the click-to-unmute recovery below still works.
+      if (hasVoice) { vid.muted = false; vid.removeAttribute('muted'); }
+    }).catch(() => { vid.muted = true; vid.play().catch(()=>{}); });
+  };
+  if (vid.readyState >= 2) startPlayback();
+  else vid.addEventListener('loadeddata', startPlayback, { once: true });
+
+  // Click the video to toggle sound (recovery if autoplay stayed muted).
   vid.style.cursor = hasVoice ? 'pointer' : 'default';
   vid.onclick = hasVoice ? () => { vid.muted = !vid.muted; } : null;
 
