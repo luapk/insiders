@@ -2146,17 +2146,18 @@ function loadScript(src) {
 let _ffmpeg = null;
 async function loadFFmpeg() {
   if (_ffmpeg) return _ffmpeg;
-  // ffmpeg.wasm 0.12 with the SINGLE-THREADED core — runs WITHOUT SharedArrayBuffer, so
-  // no cross-origin isolation (COOP/COEP) is needed (which would break our CDN assets).
-  if (!window.FFmpegWASM) await loadScript('https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js');
-  if (!window.FFmpegUtil) await loadScript('https://unpkg.com/@ffmpeg/util@0.12.1/dist/umd/index.js');
+  // ffmpeg.wasm 0.12 single-threaded core, SELF-HOSTED from /vendor/ffmpeg so everything
+  // is same-origin: no SharedArrayBuffer (no COOP/COEP needed), and no cross-origin Worker
+  // construction (which the browser blocks). Absolute URLs so the worker resolves the core
+  // correctly regardless of the page path.
+  const abs = (p) => new URL(p, location.href).href;
+  if (!window.FFmpegWASM) await loadScript(abs('vendor/ffmpeg/ffmpeg.js'));
   const { FFmpeg } = window.FFmpegWASM;
-  const { toBlobURL } = window.FFmpegUtil;
-  const base = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
   const ff = new FFmpeg();
   await ff.load({
-    coreURL: await toBlobURL(`${base}/ffmpeg-core.js`, 'text/javascript'),
-    wasmURL: await toBlobURL(`${base}/ffmpeg-core.wasm`, 'application/wasm'),
+    classWorkerURL: abs('vendor/ffmpeg/814.ffmpeg.js'),
+    coreURL: abs('vendor/ffmpeg/ffmpeg-core.js'),
+    wasmURL: abs('vendor/ffmpeg/ffmpeg-core.wasm'),
   });
   _ffmpeg = ff;
   return ff;
