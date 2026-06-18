@@ -1649,6 +1649,7 @@ video#result::-webkit-media-controls-start-playback-button { display: none !impo
         <span class="meta-chip c" id="meta-mood">—</span>
         <span class="meta-chip p" id="meta-fmt">—</span>
         <span class="meta-chip" id="meta-phrase">No voice</span>
+        <span class="meta-chip" id="meta-voice" style="display:none"></span>
       </div>
       <div class="output-actions">
         <div class="mode-toggle" title="Fast = quicker & cheaper. Quality = richer motion & camera dynamics.">
@@ -1802,7 +1803,7 @@ CROWD MOTION — UNSYNCHRONISED: Each character moves INDEPENDENTLY with its own
 // movement only; the compiler handles everything structural.
 const MOOD_BRIEFS = {
   party:   'Full body bounces with explosive rhythmic joy, arms thrust overhead, head bobbing, the golden interior swirling and brightening with each beat.',
-  sick:    'Body droops and sags slowly, head tilts to one side in a woozy loll, eyes half-lidded and glassy, an occasional limp shudder passes through the glass form, the golden interior dimming.',
+  sick:    'Violently and visibly ILL: the whole body hunches and convulses in queasy waves, shoulders heaving, head lolling and swaying woozily, arms clutching the belly, a sickly GREEN tinge washing through the dimming glass interior as it shudders and wobbles like it is about to throw up.',
   sleepy:  'Eyelids droop in slow-motion, body sways gently as if about to topple, settling into a drowsy rhythmic nod with the golden core pulsing slowly.',
   excited: 'Body quivers and vibrates with barely-contained energy, eyes shoot wide, both arms fling out with fingers spread, bouncing rapidly on the spot, the golden interior flaring brighter with electric excitement.',
 };
@@ -1812,7 +1813,7 @@ const MOOD_BRIEFS = {
 // movement only; mouth/goo (e.g. being sick) is handled separately in the MOUTH block.
 const CROWD_MOOD_BRIEFS = {
   party:   'The whole crowd bounces and bobs up and down in the air to a pounding rave beat, hands thrown overhead, heads nodding hard, golden interiors flaring on the beat — and ONE character crowd-surfs, lying back and floating along the top of the crowd, passed over the upraised hands of the others.',
-  sick:    'The crowd lurches and convulses in queasy waves, bodies hunching and shuddering, heads lolling, the golden interiors turning a sickly murky green as they heave.',
+  sick:    'The whole crowd is visibly, violently ILL — bodies lurch and convulse in big queasy waves, hunching and heaving, heads lolling and swaying, arms clutching bellies, the glass interiors washing a sickly murky GREEN as they shudder and look about to throw up, each at its own offset timing.',
   sleepy:  'The crowd drifts drowsily — SOME characters are completely fast asleep, hanging limp with eyes shut and golden cores dimmed low, while others nod off in slow heavy bobs, the odd one jolting awake before drooping again.',
   excited: 'The whole crowd vibrates and quivers with barely-contained energy, eyes shooting wide, arms flinging out, every character bouncing rapidly in place out of sync, golden interiors flaring electric-bright across the crowd.',
 };
@@ -1867,6 +1868,7 @@ FOREGROUND DRIFT: Strange soft-focus biological elements lifted from this microb
 
 // ─── STATE ────────────────────────────────────────────────────────────────────
 let mood = null, format = '9:16', background = 'studio', activeCat = 'branded', selectedPhrase = null, cameraMove = null, cast = 'solo', veoModel = 'fast';
+let voiceTag = '';  // shows the output's voice source (ElevenLabs vs Veo fallback)
 let busy = false, history = [];
 
 // ─── CHAR DROPDOWN ────────────────────────────────────────────────────────────
@@ -2055,16 +2057,20 @@ Lip detail: lips part for vowels, close for B/M/P sounds, jaw drops for open vow
   // shot block. With no camera move we fall back to a clean centred shot.
   const cameraBlock = compileCamera();
 
+  // The action is the CENTRAL performance — label it loudly and place it right after the
+  // character so Veo weights it over the calm "floating bob" baseline of CHARACTER_CORE.
+  const actionBlock = `ACTION — THE CENTRAL PERFORMANCE (this is the single most important thing happening in the clip; make it bold, exaggerated and unmistakably clear, dominating the character's whole body): ${actionDesc}`;
+
   // Assemble optimal Veo 3.1 multi-block prompt — each block is a separate directive layer
   const blocks = [
     cameraBlock || getDefaultShot(),
     CHARACTER_CORE,
     isCrowd ? CROWD_DIRECTIVE : null,
-    actionDesc,
+    actionBlock,
     mouthBlock,
     BG_BRIEFS[background] || BG_BRIEFS.studio,
     sfxBlock,
-    `QUALITY: Photorealistic CGI animation. Soft subsurface scattering through glass. Cinematic depth of field. ${format === '9:16' ? 'Vertical 9:16 social format.' : 'Widescreen 16:9.'}${isCrowd ? ' Every character is an EXACT identical, fully-detailed replica — same proportions, glass material, glowing golden interior and eyes — scattered at random positions and varying depths with no grid, rows or even spacing, none more prominent than another, each moving independently and out of sync.' : ''} 8-second seamless loop.`,
+    `QUALITY: Photorealistic CGI animation. Soft subsurface scattering through glass. Cinematic depth of field. ${format === '9:16' ? 'Vertical 9:16 social format.' : 'Widescreen 16:9.'}${isCrowd ? ' Every character is an EXACT identical, fully-detailed replica — same proportions, glass material, glowing golden interior and eyes — scattered at random positions and varying depths with no grid, rows or even spacing, none more prominent than another, each moving independently and out of sync.' : ''} NO subtitles, NO captions, NO on-screen text, words, letters, numbers, watermarks or logos anywhere in the frame. 8-second seamless loop.`,
   ];
   return blocks.filter(Boolean).join('\n\n');
 }
@@ -2184,10 +2190,18 @@ async function restripeVoice(videoUrl, onPhase) {
   const converted = await elevenSpeechToSpeech(new Blob([voiceBytes.buffer], { type: 'audio/mpeg' }));
   ff.FS('writeFile', 'newvoice.mp3', new Uint8Array(await converted.arrayBuffer()));
 
-  // Re-mux: keep the video stream untouched, swap in the converted voice.
+  // Re-mux: keep the video stream untouched, swap in the converted voice. Try AAC first
+  // (best compatibility); if this ffmpeg.wasm core lacks the AAC encoder, copy the MP3
+  // stream into the MP4 instead (Chrome + social uploads handle MP4/MP3 fine).
   onPhase && onPhase('remuxing…');
-  await ff.run('-i', 'in.mp4', '-i', 'newvoice.mp3', '-map', '0:v:0', '-map', '1:a:0',
-               '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', 'out.mp4');
+  try {
+    await ff.run('-i', 'in.mp4', '-i', 'newvoice.mp3', '-map', '0:v:0', '-map', '1:a:0',
+                 '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', 'out.mp4');
+  } catch (_) {
+    try { ff.FS('unlink', 'out.mp4'); } catch (__) {}
+    await ff.run('-i', 'in.mp4', '-i', 'newvoice.mp3', '-map', '0:v:0', '-map', '1:a:0',
+                 '-c:v', 'copy', '-c:a', 'copy', 'out.mp4');
+  }
   const outBytes = ff.FS('readFile', 'out.mp4');
 
   // Clean up the in-memory FS so repeated runs don't accumulate.
@@ -2225,17 +2239,28 @@ async function generate() {
     finalUrl = videoUrl;
 
     // Voiced clips: restripe Veo's voice into the chosen ElevenLabs voice.
+    voiceTag = '';
     if (withVoice) {
-      try {
-        stepActive('step-sync','starting…');
-        setH('Restriping voice…', 'Converting to your voice with ElevenLabs — timing preserved');
-        const finalBlob = await restripeVoice(videoUrl, msg => stepActive('step-sync', msg));
-        finalUrl = URL.createObjectURL(finalBlob);
-        stepDone('step-sync','✓');
-      } catch (e) {
-        // Fall back to the original Veo voice so a restripe failure never blocks output.
-        stepDone('step-sync','skipped');
-        toast('Voice restripe failed — using Veo voice. ' + e.message);
+      if (!getELEVEN_KEY()) {
+        // No key → the restripe can't run. Make this unmistakable rather than silent.
+        stepDone('step-sync','no key');
+        voiceTag = '⚠ Veo voice — add ElevenLabs key';
+        toast('No ElevenLabs key set (gear icon) — playing Veo’s own voice instead.');
+      } else {
+        try {
+          stepActive('step-sync','starting…');
+          setH('Restriping voice…', 'Converting to your voice with ElevenLabs — timing preserved');
+          const finalBlob = await restripeVoice(videoUrl, msg => stepActive('step-sync', msg));
+          finalUrl = URL.createObjectURL(finalBlob);
+          stepDone('step-sync','✓');
+          voiceTag = '🎙 ElevenLabs voice';
+        } catch (e) {
+          // Fall back to the original Veo voice so a restripe failure never blocks output.
+          stepDone('step-sync','failed');
+          voiceTag = '⚠ Veo voice (restripe failed)';
+          console.error('Voice restripe failed:', e);
+          toast('Voice restripe failed — using Veo voice. ' + e.message);
+        }
       }
     }
 
@@ -2278,6 +2303,8 @@ async function showVideo(url, phrase, phraseLabel) {
   document.getElementById('meta-mood').textContent   = mood?.toUpperCase()||'CUSTOM';
   document.getElementById('meta-fmt').textContent    = format;
   document.getElementById('meta-phrase').textContent = phraseLabel.length>24 ? phraseLabel.slice(0,24)+'…' : phraseLabel;
+  const mv = document.getElementById('meta-voice');
+  if (voiceTag) { mv.textContent = voiceTag; mv.style.display = ''; } else { mv.style.display = 'none'; }
 
   // A remote Blob URL streams progressively and was sitting on a black frame.
   // Fetch the whole MP4 into memory and play it from an object URL — this is the

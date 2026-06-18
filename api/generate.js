@@ -41,6 +41,8 @@ export default async function handler(req, res) {
     durationSeconds: 8,
     resolution: '720p',
     numberOfVideos: 1,
+    // Veo tends to burn in subtitles/captions whenever it renders dialogue — suppress them.
+    negativePrompt: 'subtitles, captions, closed captions, on-screen text, text overlay, words, letters, numbers, watermark, logo, timecode, caption bar',
   };
   if (imageBase64) {
     genConfig.referenceImages = [{
