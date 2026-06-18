@@ -1758,7 +1758,7 @@ async function testKeys() {
 // This is the master reference. CHARACTER_CORE goes directly into every Veo prompt.
 // Never deviate from this spec — it enforces consistency across all generations.
 
-const CHARACTER_CORE = `CHARACTER: Chibi humanoid — oversized smooth rounded dome head (approx 60% of total height), short stubby torso, small round arms and legs, no neck. Material: CLEAR translucent iridescent glass-resin — pearlescent rainbow subsurface scattering, wet glossy surface, a single soft specular highlight on the crown of the dome. Interior: a dense tangle of fine GOLDEN-AMBER coral-like filaments glowing warmly inside the head and trailing into the body — like illuminated brain-coral or delicate gold noodles. Eyes: exactly TWO small round eyes with subtle TEAL-DARK pupils, set LOW on the face, slightly inset — small and understated, NOT large, NO white sclera, NOT Pixar-style round cartoon eyes, NOT anime — alien, quiet, slightly insectoid, matching the reference image exactly. Mouth: a small circular opening, closed and barely visible by default. The character FLOATS weightlessly in mid-air with a slow gentle breathing bob — feet completely clear of any surface, genuinely suspended in space. NEVER: opaque, purple-tinted, featureless, clothed, wearing hats, large white eyes, standing on ground.`;
+const CHARACTER_CORE = `CHARACTER: Chibi humanoid — oversized smooth rounded dome head (approx 60% of total height), short stubby torso, small round arms and legs, no neck. Material: CLEAR translucent iridescent glass-resin — pearlescent rainbow subsurface scattering, wet glossy surface, a single soft specular highlight on the crown of the dome. Interior: a dense tangle of fine GOLDEN-AMBER coral-like filaments glowing warmly inside the head and trailing into the body — like illuminated brain-coral or delicate gold noodles. Eyes: exactly TWO small round eyes with subtle TEAL-DARK pupils, set LOW on the face, slightly inset — small and understated, NOT large, NO white sclera, NOT Pixar-style round cartoon eyes, NOT anime — alien, quiet, slightly insectoid, matching the reference image exactly. Mouth: a small circular opening, closed and barely visible by default. The character FLOATS weightlessly in mid-air with a slow gentle breathing bob — feet completely clear of any surface, genuinely suspended in space as if drifting underwater. It NEVER stands, walks, steps, marches or touches the ground, and there is no floor or surface beneath it; every movement happens while it hovers, drifts and bobs in mid-air. NEVER: opaque, purple-tinted, featureless, clothed, wearing hats, large white eyes, standing on ground, walking, stepping, feet touching any surface.`;
 
 // CROWD directive — appended when "Crowd" cast is selected. Establishes that the scene is
 // filled with EXACT identical replicas of the hero (no variation), one hero front-and-centre.
@@ -1812,11 +1812,13 @@ GLASS INTERACTION: The glass character has crisp, clean separation from the back
 
   micro:
     `ENVIRONMENT: Warm amber and rust bokeh field — glowing gut-microbiome bacteria filaments and cells photographed under electron microscope, deeply out-of-focus, filling the entire background with warm golden light.
-GLASS INTERACTION: This warm golden-amber light refracts THROUGH the translucent glass body — tinting the interior a deeper amber-gold, scattering soft caustic glows across the dome surface, and illuminating the golden filament core from behind and within. The character glows warm with the environment's light.`,
+GLASS INTERACTION: This warm golden-amber light refracts THROUGH the translucent glass body — tinting the interior a deeper amber-gold, scattering soft caustic glows across the dome surface, and illuminating the golden filament core from behind and within. The character glows warm with the environment's light.
+FOREGROUND DRIFT: Strange soft-focus biological elements lifted from this microscopic world — odd translucent microbes, drifting amber cells, wobbling filaments, gut villi and alien organic shapes — float gently and slowly PAST in the heavily-blurred foreground, drifting weightlessly across the frame like particles suspended in fluid, never sharp, always soft and out-of-focus.`,
 
   '3d':
     `ENVIRONMENT: Vibrant stylised 3D-rendered microbiome world — luminous cyan, magenta and gold bacteria cells and rods, softly out-of-focus, filling the background with vivid science-visualisation colour.
-GLASS INTERACTION: These vivid colours refract and scatter THROUGH the glass body — cyan and magenta highlights glint and shift across the dome surface, colour bleeds into the clear form, while the golden filament interior still glows warmly through the coloured light. The character becomes a prism for the environment.`,
+GLASS INTERACTION: These vivid colours refract and scatter THROUGH the glass body — cyan and magenta highlights glint and shift across the dome surface, colour bleeds into the clear form, while the golden filament interior still glows warmly through the coloured light. The character becomes a prism for the environment.
+FOREGROUND DRIFT: Strange soft-focus biological elements lifted from this microbiome world — luminous cyan and magenta cells, drifting rods, wobbling filaments and alien organic shapes — float gently and slowly PAST in the heavily-blurred foreground, drifting weightlessly across the frame like particles suspended in fluid, never sharp, always soft and out-of-focus.`,
 };
 
 // ─── STATE ────────────────────────────────────────────────────────────────────
@@ -1958,7 +1960,7 @@ async function compileMasterShot(phraseText) {
     headers: { 'Content-Type':'application/json','x-api-key':getCLAUDE_KEY(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true' },
     body: JSON.stringify({
       model: 'claude-sonnet-4-6', max_tokens: 100,
-      system: `Write a 25-40 word action sequence for a CGI character clip. Present tense. Start with a strong verb. Body movement, energy and expression ONLY — no setting, no camera, no character material description. Physically specific and visceral.`,
+      system: `Write a 25-40 word action sequence for a CGI character clip. Present tense. Start with a strong verb. Body movement, energy and expression ONLY — no setting, no camera, no character material description. Physically specific and visceral. CRITICAL: the character is always FLOATING, suspended weightlessly in mid-air — never write walking, stepping, standing, marching, running, pacing, jumping off the ground, or any contact with a floor or surface. All movement is limbs, torso, head and drifting/bobbing while it hovers in the air.`,
       messages: [{ role:'user', content: `Action preset: ${moodBrief}\n${castCtx}\n${speechCtx}` }]
     })
   });
@@ -1979,6 +1981,12 @@ Lip detail: lips part for vowels, close for B/M/P sounds, jaw drops for open vow
     mouthBlock = `MOUTH: The mouth stays completely CLOSED and still for the entire clip. The character does NOT talk, does NOT open its mouth, and shows NO mouth or lip movement at any point. This is a silent clip — only body movement, no speaking.`;
   }
 
+  // SFX — soft underwater ambience runs under every clip, reinforcing the weightless,
+  // submerged float. When the character speaks, the Scottish voice sits clearly on top.
+  const sfxBlock = phraseText
+    ? `SFX: A soft underwater ambient soundscape throughout — muffled submerged tones, gentle drifting bubbles and a calm low subaquatic hum, as if the whole scene is suspended deep underwater. The high-pitched Scottish voice-over sits clearly and intelligibly on top of this soft underwater ambience.`
+    : `SFX: A soft underwater ambient soundscape throughout — muffled submerged tones, gentle drifting bubbles and a calm low subaquatic hum, as if the whole scene is suspended deep underwater. No speech, no music — only the gentle underwater ambience.`;
+
   // A selected camera move defines its own opening framing, so it replaces the default
   // shot block. With no camera move we fall back to a clean centred shot.
   const cameraBlock = compileCamera();
@@ -1991,6 +1999,7 @@ Lip detail: lips part for vowels, close for B/M/P sounds, jaw drops for open vow
     actionDesc,
     mouthBlock,
     BG_BRIEFS[background] || BG_BRIEFS.studio,
+    sfxBlock,
     `QUALITY: Photorealistic CGI animation. Soft subsurface scattering through glass. Cinematic depth of field. ${format === '9:16' ? 'Vertical 9:16 social format.' : 'Widescreen 16:9.'}${isCrowd ? ' Every character is an EXACT identical, fully-detailed replica — same size, proportions, glass material, glowing golden interior and eyes — none more prominent than another, each moving naturally and independently.' : ''} 8-second seamless loop.`,
   ];
   return blocks.filter(Boolean).join('\n\n');
