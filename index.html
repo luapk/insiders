@@ -1762,7 +1762,9 @@ const CHARACTER_CORE = `CHARACTER: Chibi humanoid — oversized smooth rounded d
 
 // CROWD directive — appended when "Crowd" cast is selected. Establishes that the scene is
 // filled with EXACT identical replicas of the hero (no variation), one hero front-and-centre.
-const CROWD_DIRECTIVE = `CAST: The scene is filled with a CROWD of the SAME character — every single figure is an EXACT identical copy of the reference-image character, each one with the same oversized clear-glass dome head, the same dense GOLDEN-AMBER coral filament interior glowing inside its head and body, the same low small teal eyes, the same proportions and the same size. Critical: every character in the crowd is fully detailed and identical to the hero — none is a plain or empty glass figure, every one has the glowing golden interior. They are spread evenly across the frame at the SAME scale, all floating in space — NONE is larger, closer, or more prominent than any other, there is no single focal hero. Each character moves INDEPENDENTLY and naturally with its own loose, unsynchronised timing — a living crowd of individuals, NOT a synchronised routine, slight natural offsets between them.`;
+const CROWD_DIRECTIVE = `CAST: The scene is filled with a CROWD of the SAME character — every single figure is an EXACT identical copy of the reference-image character, each one with the same oversized clear-glass dome head, the same dense GOLDEN-AMBER coral filament interior glowing inside its head and body, the same low small teal eyes, and the same proportions. Critical: every character in the crowd is fully detailed and identical to the hero — none is a plain or empty glass figure, every one has the glowing golden interior.
+CROWD LAYOUT — MESSY AND RANDOM: The characters are scattered at RANDOM, irregular positions throughout the scene and at VARYING DEPTHS — some nearer the camera, some further back, drifting at different heights, overlapping and clustered together at uneven distances, jumbled and disorganised like a real packed crowd. Because the character model is identical they are all the same actual size, but perspective makes the nearer ones appear larger and the further ones smaller. ABSOLUTELY NO grid, NO neat rows, NO columns, NO straight lines, NO even spacing, NO symmetry and NO regimented alignment — the arrangement is organic, cluttered and chaotic. No single character is a focal hero.
+CROWD MOTION — UNSYNCHRONISED: Each character moves INDEPENDENTLY with its own loose, randomised timing, phase and rhythm — at any given moment every one is at a DIFFERENT point in the motion, no two doing the exact same thing at the same time. NOT a synchronised routine, NOT a marching block, NOT a dance troupe moving in unison — a chaotic living crowd of individuals, each offset and out of step with the others.`;
 
 // Action descriptions — used as Claude's creative brief. Claude writes the physical
 // movement only; the compiler handles everything structural.
@@ -2014,7 +2016,7 @@ Lip detail: lips part for vowels, close for B/M/P sounds, jaw drops for open vow
     mouthBlock,
     BG_BRIEFS[background] || BG_BRIEFS.studio,
     sfxBlock,
-    `QUALITY: Photorealistic CGI animation. Soft subsurface scattering through glass. Cinematic depth of field. ${format === '9:16' ? 'Vertical 9:16 social format.' : 'Widescreen 16:9.'}${isCrowd ? ' Every character is an EXACT identical, fully-detailed replica — same size, proportions, glass material, glowing golden interior and eyes — none more prominent than another, each moving naturally and independently.' : ''} 8-second seamless loop.`,
+    `QUALITY: Photorealistic CGI animation. Soft subsurface scattering through glass. Cinematic depth of field. ${format === '9:16' ? 'Vertical 9:16 social format.' : 'Widescreen 16:9.'}${isCrowd ? ' Every character is an EXACT identical, fully-detailed replica — same proportions, glass material, glowing golden interior and eyes — scattered at random positions and varying depths with no grid, rows or even spacing, none more prominent than another, each moving independently and out of sync.' : ''} 8-second seamless loop.`,
   ];
   return blocks.filter(Boolean).join('\n\n');
 }
@@ -2031,7 +2033,7 @@ function compileCamera() {
 
 function getDefaultShot() {
   return cast === 'crowd'
-    ? 'SHOT: Wide shot. A crowd of identical characters spread evenly across the frame at the same scale, all floating in space, none more prominent than another.'
+    ? 'SHOT: Wide shot. A messy, randomly-scattered crowd of identical characters at varying depths — overlapping, clustered and jumbled with no rows, grid or even spacing — all floating in space, none more prominent than another.'
     : 'SHOT: Medium shot. Character centred in frame, full body visible, floating in space.';
 }
 
